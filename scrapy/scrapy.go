@@ -2,7 +2,9 @@ package scrapy
 
 import (
 	"context"
+	"errors"
 	"github.com/gocolly/colly"
+	"log"
 	"sync"
 )
 
@@ -24,6 +26,7 @@ type Entry struct {
 
 type JobScraper interface {
 	BuildUrl() string
+	AddPagination(page int) string
 	ScrapeJobs(ctx context.Context, url string) ([]*Job, error)
 	ParseJob(e *colly.HTMLElement) Job
 	FetchJobDetails(jobID string) (string, string)
@@ -32,24 +35,21 @@ type JobScraper interface {
 
 func Worker(pagesCh <-chan int, scraper JobScraper, results chan<- []*Job, wg *sync.WaitGroup) {
 	// get the page from the channel and scrape. pass the pointer to the slice back to the output channel
-	//ctx := context.Background()
+	ctx := context.Background()
 	defer wg.Done()
 
-	//for page := range pagesCh {
+	for page := range pagesCh {
 
-	//entry.Params = append(entry.Params, struct{ Key, Value string }{
-	//	"start", strconv.Itoa(page),
-	//})
-	//dst := scraper.BuildUrl(entry)
-	//
-	//scrapedJobs, err := scraper.ScrapeJobs(ctx, dst)
-	//if err != nil {
-	//	log.Printf("scrape failed: %v\n", errors.Unwrap(err))
-	//	return
-	//}
+		dst := scraper.AddPagination(page)
 
-	//results <- scrapedJobs
-	//}
+		scrapedJobs, err := scraper.ScrapeJobs(ctx, dst)
+		if err != nil {
+			log.Printf("scrape failed: %v\n", errors.Unwrap(err))
+			return
+		}
+
+		results <- scrapedJobs
+	}
 }
 
 func Collate(results <-chan []*Job) []*Job {

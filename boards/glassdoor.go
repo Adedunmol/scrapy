@@ -16,6 +16,12 @@ type GlassDoor struct {
 	Params  []struct{ Key, Value string }
 }
 
+func (g *GlassDoor) AddPagination(page int) string {
+	dst := g.BuildUrl()
+
+	return dst + fmt.Sprintf("&p=%d", page)
+}
+
 func (g *GlassDoor) BuildUrl() string {
 	fmt.Println("building url")
 

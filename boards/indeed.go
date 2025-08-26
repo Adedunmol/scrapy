@@ -16,6 +16,12 @@ type Indeed struct {
 	Params  []struct{ Key, Value string }
 }
 
+func (i *Indeed) AddPagination(page int) string {
+	dst := i.BuildUrl()
+
+	return dst + fmt.Sprintf("&p=%d", page)
+}
+
 func (i *Indeed) BuildUrl() string {
 	fmt.Println("building url")
 

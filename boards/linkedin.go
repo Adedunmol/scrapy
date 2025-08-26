@@ -18,6 +18,12 @@ type LinkedIn struct {
 	Params  []struct{ Key, Value string }
 }
 
+func (l *LinkedIn) AddPagination(page int) string {
+	dst := l.BuildUrl()
+
+	return dst + fmt.Sprintf("&p=%d", page)
+}
+
 func (l *LinkedIn) BuildUrl() string {
 	fmt.Println("building url")
 
@@ -75,7 +81,7 @@ func (l *LinkedIn) ParseJob(e *colly.HTMLElement) scrapy.Job {
 }
 
 func (l *LinkedIn) FetchJobDetails(jobID string) (string, string) {
-	url := l.JobUrl + jobID
+	dst := l.JobUrl + jobID
 
 	c := colly.NewCollector()
 
@@ -96,7 +102,7 @@ func (l *LinkedIn) FetchJobDetails(jobID string) (string, string) {
 		log.Fatal(err)
 	})
 
-	c.Visit(url)
+	c.Visit(dst)
 
 	return applicants, posted
 }

@@ -18,6 +18,12 @@ type JobberMan struct {
 	Params  []struct{ Key, Value string }
 }
 
+func (j *JobberMan) AddPagination(page int) string {
+	dst := j.BuildUrl()
+
+	return dst + fmt.Sprintf("&p=%d", page)
+}
+
 func (j *JobberMan) BuildUrl() string {
 	fmt.Println("building url")
 

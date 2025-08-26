@@ -21,7 +21,7 @@ const Workers = 3
 const BufferSize = 3
 const Pages = 10
 
-func coordinator(ctx context.Context, entry *Entry) {
+func coordinator(ctx context.Context) {
 	fmt.Println("coordinator started")
 
 	scrapers := []scrapy.JobScraper{
@@ -103,12 +103,6 @@ func main() {
 		gocron.NewTask(
 			coordinator,
 			ctx,
-			&Entry{Params: []struct{ Key, Value string }{
-				{"location", Location},
-				{"keywords", SearchTerm},
-				{"start", "25"},
-				{SortKey, SortLast24Hours},
-			}},
 		),
 	)
 	if err != nil {

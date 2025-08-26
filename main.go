@@ -17,8 +17,6 @@ import (
 const Email = "oyewaleadedunmola@gmail.com"
 const SearchTerm = "Python"
 const Location = ""
-const SortKey = "f_TPR"
-const SortLast24Hours = "r86400"
 const Workers = 3
 const BufferSize = 3
 const Pages = 10
@@ -28,7 +26,16 @@ func coordinator(ctx context.Context, entry *Entry) {
 
 	scrapers := []scrapy.JobScraper{
 		&boards.GlassDoor{},
-		&boards.LinkedIn{},
+		&boards.LinkedIn{
+			BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
+			JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
+			Params:  []struct{ Key, Value string }{
+				//{"location", Location},
+				//{"keywords", SearchTerm},
+				//{"start", strconv.Itoa(page)},
+				//{"f_TPR", "r86400"},
+			},
+		},
 		&boards.Indeed{},
 		&boards.JobberMan{},
 	}

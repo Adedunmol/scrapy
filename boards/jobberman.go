@@ -15,14 +15,15 @@ import (
 type JobberMan struct {
 	BaseUrl string // https://www.jobberman.com/jobs/full-time?q=python&work_type=full-time
 	JobUrl  string
+	Params  []struct{ Key, Value string }
 }
 
-func (j *JobberMan) BuildUrl(entry *scrapy.Entry) string {
+func (j *JobberMan) BuildUrl() string {
 	fmt.Println("building url")
 
 	params := make(url.Values)
 
-	for _, v := range entry.Params {
+	for _, v := range j.Params {
 		if v.Value != "" {
 			params.Add(v.Key, v.Value)
 		}

@@ -13,16 +13,17 @@ import (
 )
 
 type LinkedIn struct {
-	BaseUrl string // "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
-	JobUrl  string // https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/
+	BaseUrl string
+	JobUrl  string
+	Params  []struct{ Key, Value string }
 }
 
-func (l *LinkedIn) BuildUrl(entry *scrapy.Entry) string {
+func (l *LinkedIn) BuildUrl() string {
 	fmt.Println("building url")
 
 	params := make(url.Values)
 
-	for _, v := range entry.Params {
+	for _, v := range l.Params {
 		if v.Value != "" {
 			params.Add(v.Key, v.Value)
 		}

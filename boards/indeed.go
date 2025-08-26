@@ -13,14 +13,15 @@ import (
 type Indeed struct {
 	BaseUrl string // https://www.indeed.com/jobs?q=python&l=Texas
 	JobUrl  string
+	Params  []struct{ Key, Value string }
 }
 
-func (i *Indeed) BuildUrl(entry *scrapy.Entry) string {
+func (i *Indeed) BuildUrl() string {
 	fmt.Println("building url")
 
 	params := make(url.Values)
 
-	for _, v := range entry.Params {
+	for _, v := range i.Params {
 		if v.Value != "" {
 			params.Add(v.Key, v.Value)
 		}

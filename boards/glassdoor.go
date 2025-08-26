@@ -13,14 +13,15 @@ import (
 type GlassDoor struct {
 	BaseUrl string // https://www.glassdoor.com/Job/jobs.htm?sc.keyword=golang&locT=C&locId=1147401&locKeyword=San%20Francisco,%20CA&p=2
 	JobUrl  string
+	Params  []struct{ Key, Value string }
 }
 
-func (g *GlassDoor) BuildUrl(entry *scrapy.Entry) string {
+func (g *GlassDoor) BuildUrl() string {
 	fmt.Println("building url")
 
 	params := make(url.Values)
 
-	for _, v := range entry.Params {
+	for _, v := range g.Params {
 		if v.Value != "" {
 			params.Add(v.Key, v.Value)
 		}

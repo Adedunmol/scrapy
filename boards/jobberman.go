@@ -114,6 +114,8 @@ const JobberManBuffer = 3
 const JobberManWorkers = 3
 
 func (j *JobberMan) Run(wg *sync.WaitGroup, results chan<- []*scrapy.Job) {
+	defer wg.Done()
+
 	pagesCh := make(chan int, JobberManBuffer)
 
 	wg.Add(JobberManWorkers)

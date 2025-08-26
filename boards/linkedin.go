@@ -21,7 +21,7 @@ type LinkedIn struct {
 func (l *LinkedIn) AddPagination(page int) string {
 	dst := l.BuildUrl()
 
-	return dst + fmt.Sprintf("&p=%d", page)
+	return dst + fmt.Sprintf("&start=%d", page)
 }
 
 func (l *LinkedIn) BuildUrl() string {
@@ -111,6 +111,7 @@ const LinkedInBuffer = 3
 const LinkedInWorkers = 3
 
 func (l *LinkedIn) Run(wg *sync.WaitGroup, results chan<- []*scrapy.Job) {
+	defer wg.Done()
 	pagesCh := make(chan int, LinkedInBuffer)
 
 	wg.Add(LinkedInWorkers)

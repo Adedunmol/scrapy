@@ -82,6 +82,8 @@ const GlassDoorBuffer = 3
 const GlassDoorWorkers = 3
 
 func (g *GlassDoor) Run(wg *sync.WaitGroup, results chan<- []*scrapy.Job) {
+	defer wg.Done()
+
 	pagesCh := make(chan int, JobberManBuffer)
 
 	wg.Add(JobberManWorkers)

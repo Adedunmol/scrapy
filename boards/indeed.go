@@ -77,6 +77,8 @@ const IndeedBuffer = 3
 const IndeedWorkers = 3
 
 func (i *Indeed) Run(wg *sync.WaitGroup, results chan<- []*scrapy.Job) {
+	defer wg.Done()
+
 	pagesCh := make(chan int, IndeedBuffer)
 
 	wg.Add(JobberManWorkers)

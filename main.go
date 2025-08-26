@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 )
 
@@ -24,16 +25,17 @@ const Pages = 10
 func coordinator(ctx context.Context) {
 	fmt.Println("coordinator started")
 
+	var wg sync.WaitGroup
+
 	scrapers := []scrapy.JobScraper{
 		&boards.GlassDoor{},
 		&boards.LinkedIn{
 			BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
 			JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
-			Params:  []struct{ Key, Value string }{
-				//{"location", Location},
-				//{"keywords", SearchTerm},
-				//{"start", strconv.Itoa(page)},
-				//{"f_TPR", "r86400"},
+			Params: []struct{ Key, Value string }{
+				{"location", Location},
+				{"keywords", SearchTerm},
+				{"f_TPR", "r86400"},
 			},
 		},
 		&boards.Indeed{},
@@ -42,40 +44,17 @@ func coordinator(ctx context.Context) {
 
 	results := make(chan []*scrapy.Job, len(scrapers))
 
-	//var wg sync.WaitGroup
-	//
-	//pagesCh := make(chan int, BufferSize)
-	//results := make(chan []*Job, BufferSize)
-	//
-	//wg.Add(Workers)
-	//for i := 0; i < Workers; i++ {
-	//	go worker(pagesCh, results, &wg)
-	//}
-	//
-	//go func() {
-	//	wg.Wait()
-	//	close(results)
-	//}()
-	//
-	//for i := 1; i <= Pages; i++ {
-	//	pagesCh <- i
-	//}
-	//close(pagesCh)
-	//
+	for _, scraper := range scrapers {
+		wg.Add(1)
+		go scraper.Run(&wg, results)
+	}
 
-	_ = scrapy.Collate(results) // scrapedJobs
+	scrapedJobs := scrapy.Collate(results)
 
-	//url := BuildUrl(entry)
-	//scrapedJobs, err := ScrapeJobs(ctx, url)
-	//if err != nil {
-	//	log.Printf("scrape failed: %v\n", errors.Unwrap(err))
-	//	return
-	//}
-	//
-	//err = SendMail(Email, scrapedJobs)
-	//if err != nil {
-	//	log.Printf("error occurred while sending mail: %v", errors.Unwrap(err))
-	//}
+	err := SendMail(Email, scrapedJobs)
+	if err != nil {
+		log.Printf("error occurred while sending mail: %v", errors.Unwrap(err))
+	}
 	fmt.Println("coordinator finished")
 }
 

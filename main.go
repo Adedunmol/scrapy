@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Adedunmol/scrapy/boards"
+	"github.com/Adedunmol/scrapy/scrapy"
 	"github.com/go-co-op/gocron/v2"
 	"github.com/joho/godotenv"
 	"log"
@@ -15,7 +17,6 @@ import (
 const Email = "oyewaleadedunmola@gmail.com"
 const SearchTerm = "Python"
 const Location = ""
-const BaseUrl = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 const SortKey = "f_TPR"
 const SortLast24Hours = "r86400"
 const Workers = 3
@@ -24,6 +25,15 @@ const Pages = 10
 
 func coordinator(ctx context.Context, entry *Entry) {
 	fmt.Println("coordinator started")
+
+	scrapers := []scrapy.JobScraper{
+		&boards.GlassDoor{},
+		&boards.LinkedIn{},
+		&boards.Indeed{},
+		&boards.JobberMan{},
+	}
+
+	results := make(chan []*scrapy.Job, len(scrapers))
 
 	//var wg sync.WaitGroup
 	//
@@ -46,19 +56,19 @@ func coordinator(ctx context.Context, entry *Entry) {
 	//close(pagesCh)
 	//
 
-	// scrapedJobs := collate(results)
+	_ = scrapy.Collate(results) // scrapedJobs
 
-	url := BuildUrl(entry)
-	scrapedJobs, err := ScrapeJobs(ctx, url)
-	if err != nil {
-		log.Printf("scrape failed: %v\n", errors.Unwrap(err))
-		return
-	}
-
-	err = SendMail(Email, scrapedJobs)
-	if err != nil {
-		log.Printf("error occurred while sending mail: %v", errors.Unwrap(err))
-	}
+	//url := BuildUrl(entry)
+	//scrapedJobs, err := ScrapeJobs(ctx, url)
+	//if err != nil {
+	//	log.Printf("scrape failed: %v\n", errors.Unwrap(err))
+	//	return
+	//}
+	//
+	//err = SendMail(Email, scrapedJobs)
+	//if err != nil {
+	//	log.Printf("error occurred while sending mail: %v", errors.Unwrap(err))
+	//}
 	fmt.Println("coordinator finished")
 }
 

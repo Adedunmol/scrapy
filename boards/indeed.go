@@ -2,13 +2,12 @@ package boards
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/Adedunmol/scrapy/scrapy"
 	"github.com/gocolly/colly"
-	"log"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 type Indeed struct {
@@ -64,28 +63,28 @@ func (i *Indeed) ParseJob(e *colly.HTMLElement) scrapy.Job {
 }
 
 func (i *Indeed) FetchJobDetails(jobID string) (string, string) {
-	dst := fmt.Sprintf("https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/%s", jobID)
+	return "", ""
+}
 
-	c := colly.NewCollector()
+const IndeedBuffer = 3
+const IndeedWorkers = 3
 
-	c.UserAgent = scrapy.UserAgent
+func (i *Indeed) Run(wg *sync.WaitGroup, results chan<- []*scrapy.Job) {
+	pagesCh := make(chan int, IndeedBuffer)
 
-	var applicants, posted string
+	wg.Add(JobberManWorkers)
+	for curr := 0; curr < IndeedWorkers; curr++ {
+		go scrapy.Worker(pagesCh, i, results, wg)
+	}
 
-	c.OnHTML("span.num-applicants__caption.topcard__flavor--metadata.topcard__flavor--bullet", func(e *colly.HTMLElement) {
-		applicants = strings.TrimSpace(e.Text)
-	})
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
 
-	c.OnHTML("span.posted-time-ago__text.topcard__flavor--metadata", func(e *colly.HTMLElement) {
-		posted = strings.TrimSpace(e.Text)
-	})
+	for i := 1; i <= 10; i++ {
+		pagesCh <- i
+	}
+	close(pagesCh)
 
-	c.OnError(func(r *colly.Response, err error) {
-		err = fmt.Errorf("error fetching job details (registered): %v", errors.Unwrap(err))
-		log.Fatal(err)
-	})
-
-	c.Visit(dst)
-
-	return applicants, posted
 }

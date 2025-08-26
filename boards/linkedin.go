@@ -9,11 +9,12 @@ import (
 	"log"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 type LinkedIn struct {
-	BaseUrl string
-	JobUrl  string
+	BaseUrl string // "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
+	JobUrl  string // https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/
 }
 
 func (l *LinkedIn) BuildUrl(entry *scrapy.Entry) string {
@@ -73,7 +74,7 @@ func (l *LinkedIn) ParseJob(e *colly.HTMLElement) scrapy.Job {
 }
 
 func (l *LinkedIn) FetchJobDetails(jobID string) (string, string) {
-	url := fmt.Sprintf("https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/%s", jobID)
+	url := l.JobUrl + jobID
 
 	c := colly.NewCollector()
 
@@ -97,4 +98,27 @@ func (l *LinkedIn) FetchJobDetails(jobID string) (string, string) {
 	c.Visit(url)
 
 	return applicants, posted
+}
+
+const LinkedInBuffer = 3
+const LinkedInWorkers = 3
+
+func (l *LinkedIn) Run(wg *sync.WaitGroup, results chan<- []*scrapy.Job) {
+	pagesCh := make(chan int, LinkedInBuffer)
+
+	wg.Add(LinkedInWorkers)
+	for i := 0; i < LinkedInWorkers; i++ {
+		go scrapy.Worker(pagesCh, l, results, wg)
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	for i := 1; i <= 10; i++ {
+		pagesCh <- i
+	}
+	close(pagesCh)
+
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/gocolly/colly"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 type GlassDoor struct {
@@ -68,4 +69,27 @@ func (g *GlassDoor) ParseJob(e *colly.HTMLElement) scrapy.Job {
 
 func (g *GlassDoor) FetchJobDetails(jobID string) (string, string) {
 	return "", ""
+}
+
+const GlassDoorBuffer = 3
+const GlassDoorWorkers = 3
+
+func (g *GlassDoor) Run(wg *sync.WaitGroup, results chan<- []*scrapy.Job) {
+	pagesCh := make(chan int, JobberManBuffer)
+
+	wg.Add(JobberManWorkers)
+	for i := 0; i < JobberManWorkers; i++ {
+		go scrapy.Worker(pagesCh, g, results, wg)
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	for i := 1; i <= 10; i++ {
+		pagesCh <- i
+	}
+	close(pagesCh)
+
 }

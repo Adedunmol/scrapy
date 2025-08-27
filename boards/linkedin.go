@@ -58,7 +58,9 @@ func (l *LinkedIn) ScrapeJobs(ctx context.Context, url string) ([]*scrapy.Job, e
 		job.Applicants = applicants
 		job.DatePosted = datePosted
 
-		res = append(res, &job)
+		if &job != nil {
+			res = append(res, &job)
+		}
 	})
 
 	c.Visit(url)

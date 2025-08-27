@@ -34,7 +34,9 @@ func SendMail(email string, parsedJobs []*scrapy.Job) error {
 
 	htmlBody, err := parseTemplate(parsedJobs)
 	if err != nil {
-		return fmt.Errorf("error parsing template: %v", err)
+		err = fmt.Errorf("error parsing template: %v", err)
+		fmt.Println(err)
+		return err
 	}
 
 	// Construct email message
@@ -42,8 +44,8 @@ func SendMail(email string, parsedJobs []*scrapy.Job) error {
 	for k, v := range headers {
 		msg.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
 	}
-	msg.WriteString("\r\n")            // Blank line between headers and body
-	msg.WriteString(htmlBody.String()) // HTML content
+	msg.WriteString("\r\n")   // Blank line between headers and body
+	msg.WriteString(htmlBody) // HTML content
 
 	// Send email
 	return smtp.SendMail(
@@ -55,23 +57,23 @@ func SendMail(email string, parsedJobs []*scrapy.Job) error {
 	)
 }
 
-func parseTemplate(data []*scrapy.Job) (bytes.Buffer, error) {
+func parseTemplate(data []*scrapy.Job) (string, error) {
 
 	currDir, err := os.Getwd()
 	if err != nil {
-		return bytes.Buffer{}, fmt.Errorf("error getting current directory: %v", err)
+		return "", fmt.Errorf("error getting current directory: %v", err)
 	}
 	templatePath := filepath.Join(currDir, Template+".html")
 
 	tmpl, err := template.ParseFiles(templatePath)
 	if err != nil {
-		return bytes.Buffer{}, fmt.Errorf("error parsing template: %v", err)
+		return "", fmt.Errorf("error parsing template: %v", err)
 	}
 
 	var rendered bytes.Buffer
 	if err := tmpl.Execute(&rendered, data); err != nil {
-		return bytes.Buffer{}, fmt.Errorf("error executing template: %v", err)
+		return "", fmt.Errorf("error executing template: %v", err)
 	}
 
-	return rendered, nil
+	return rendered.String(), nil
 }

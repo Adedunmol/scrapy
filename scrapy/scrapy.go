@@ -30,7 +30,7 @@ type JobScraper interface {
 	ScrapeJobs(ctx context.Context, url string) ([]*Job, error)
 	ParseJob(e *colly.HTMLElement) Job
 	FetchJobDetails(jobID string) (string, string)
-	Run(wg *sync.WaitGroup, results chan<- []*Job)
+	Run(globalWg *sync.WaitGroup, results chan<- []*Job)
 }
 
 func Worker(pagesCh <-chan int, scraper JobScraper, results chan<- []*Job, wg *sync.WaitGroup) {
@@ -45,7 +45,8 @@ func Worker(pagesCh <-chan int, scraper JobScraper, results chan<- []*Job, wg *s
 		scrapedJobs, err := scraper.ScrapeJobs(ctx, dst)
 		if err != nil {
 			log.Printf("scrape failed: %v\n", errors.Unwrap(err))
-			return
+			continue
+			//return
 		}
 
 		results <- scrapedJobs

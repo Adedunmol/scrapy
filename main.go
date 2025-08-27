@@ -28,7 +28,7 @@ func coordinator(ctx context.Context) {
 	var wg sync.WaitGroup
 
 	scrapers := []scrapy.JobScraper{
-		&boards.GlassDoor{},
+		//&boards.GlassDoor{},
 		&boards.LinkedIn{
 			BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
 			JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
@@ -38,18 +38,25 @@ func coordinator(ctx context.Context) {
 				{"f_TPR", "r86400"},
 			},
 		},
-		&boards.Indeed{},
-		&boards.JobberMan{},
+		//&boards.Indeed{},
+		//&boards.JobberMan{},
 	}
 
-	results := make(chan []*scrapy.Job, len(scrapers))
+	results := make(chan []*scrapy.Job, 10)
 
 	for _, scraper := range scrapers {
 		wg.Add(1)
 		go scraper.Run(&wg, results)
 	}
 
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
 	scrapedJobs := scrapy.Collate(results)
+
+	fmt.Println("scraped jobs: ", scrapedJobs)
 
 	err := SendMail(Email, scrapedJobs)
 	if err != nil {
@@ -77,7 +84,7 @@ func main() {
 	// register the function to be executed (run coordinator)
 	_, err = s.NewJob(
 		gocron.DurationJob(
-			1*time.Minute,
+			3*time.Minute,
 		),
 		gocron.NewTask(
 			coordinator,

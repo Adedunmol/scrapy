@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/Adedunmol/scrapy/scrapy"
 	"github.com/gocolly/colly"
-	"log"
 	"net/url"
 	"strings"
 	"sync"
@@ -99,7 +98,7 @@ func (l *LinkedIn) FetchJobDetails(jobID string) (string, string) {
 
 	c.OnError(func(r *colly.Response, err error) {
 		err = fmt.Errorf("error fetching job details (registered): %v", errors.Unwrap(err))
-		log.Fatal(err)
+		fmt.Println(err)
 	})
 
 	c.Visit(dst)
@@ -107,26 +106,26 @@ func (l *LinkedIn) FetchJobDetails(jobID string) (string, string) {
 	return applicants, posted
 }
 
-const LinkedInBuffer = 3
+const LinkedInBuffer = 5
 const LinkedInWorkers = 3
 
-func (l *LinkedIn) Run(wg *sync.WaitGroup, results chan<- []*scrapy.Job) {
-	defer wg.Done()
+func (l *LinkedIn) Run(globalWg *sync.WaitGroup, results chan<- []*scrapy.Job) {
+	defer globalWg.Done()
 	pagesCh := make(chan int, LinkedInBuffer)
+	var wg sync.WaitGroup
 
-	wg.Add(LinkedInWorkers)
+	// Spin up workers
 	for i := 0; i < LinkedInWorkers; i++ {
-		go scrapy.Worker(pagesCh, l, results, wg)
+		wg.Add(1)
+		go scrapy.Worker(pagesCh, l, results, &wg)
 	}
 
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
+	// Feed pages
 	for i := 1; i <= 10; i++ {
 		pagesCh <- i
 	}
 	close(pagesCh)
 
+	// Wait for workers to finish
+	wg.Wait()
 }

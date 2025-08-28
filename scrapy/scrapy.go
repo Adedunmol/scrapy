@@ -9,9 +9,12 @@ import (
 )
 
 const UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
+const Location = ""
 const Workers = 3
 const Buffer = 5
 const Pages = 10
+
+var ErrNotFound = errors.New("page (jobs) not found")
 
 type Job struct {
 	Id         string
@@ -48,6 +51,14 @@ func Worker(pagesCh <-chan int, scraper JobScraper, results chan<- []*Job, wg *s
 		scrapedJobs, err := scraper.ScrapeJobs(ctx, dst)
 		if err != nil {
 			log.Printf("scrape failed: %v\n", errors.Unwrap(err))
+			//if errors.Is(err, ErrNotFound) { // define ErrNotFound for 404
+			//	// signal the controller to stop
+			//	select {
+			//	case stopCh <- struct{}{}:
+			//	default:
+			//	}
+			//	return
+			//}
 			continue
 			//return
 		}

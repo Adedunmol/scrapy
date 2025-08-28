@@ -78,16 +78,13 @@ func (g *GlassDoor) FetchJobDetails(jobID string) (string, string) {
 	return "", ""
 }
 
-const GlassDoorBuffer = 3
-const GlassDoorWorkers = 3
-
 func (g *GlassDoor) Run(globalWg *sync.WaitGroup, results chan<- []*scrapy.Job) {
 	defer globalWg.Done()
-	pagesCh := make(chan int, LinkedInBuffer)
+	pagesCh := make(chan int, scrapy.Buffer)
 	var wg sync.WaitGroup
 
 	// Spin up workers
-	for i := 0; i < LinkedInWorkers; i++ {
+	for i := 0; i < scrapy.Workers; i++ {
 		wg.Add(1)
 		go scrapy.Worker(pagesCh, g, results, &wg)
 	}

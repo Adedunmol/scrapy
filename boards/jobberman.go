@@ -33,6 +33,10 @@ func (j *JobberMan) BuildUrl() string {
 		}
 	}
 
+	if scrapy.Location != "" {
+		j.JobUrl = scrapy.Location + "/" + j.JobUrl
+	}
+
 	dst := j.BaseUrl + "?" + params.Encode()
 
 	fmt.Println("built url")
@@ -47,6 +51,7 @@ func (j *JobberMan) ScrapeJobs(ctx context.Context, url string) ([]*scrapy.Job, 
 	)
 
 	var res []*scrapy.Job
+	var scrapeErr error
 
 	// The main job card container
 	c.OnHTML("div[data-cy='listing-cards-components']", func(e *colly.HTMLElement) {
@@ -57,16 +62,18 @@ func (j *JobberMan) ScrapeJobs(ctx context.Context, url string) ([]*scrapy.Job, 
 		}
 	})
 
-	c.OnError(func(r *colly.Response, err error) {
-		fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
-		if r.StatusCode == 404 {
-			// stop feeding the channel. close the channel.
-		}
-	})
+	//c.OnError(func(r *colly.Response, err error) {
+	//	fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
+	//	if r.StatusCode == 404 {
+	//		// stop feeding the channel. close the channel.
+	//		scrapeErr = scrapy.ErrNotFound
+	//	}
+	//	scrapeErr = err
+	//})
 
 	c.Visit(url)
 
-	return res, nil
+	return res, scrapeErr
 }
 
 func (j *JobberMan) ParseJob(e *colly.HTMLElement) scrapy.Job {

@@ -17,7 +17,6 @@ import (
 
 const Email = "oyewaleadedunmola@gmail.com"
 const SearchTerm = "Python"
-const Location = ""
 const Workers = 3
 const BufferSize = 3
 
@@ -42,7 +41,6 @@ func coordinator(ctx context.Context) {
 			BaseUrl: "https://www.jobberman.com/jobs",
 			Params: []struct{ Key, Value string }{
 				{"q", SearchTerm},
-				{"location", Location},
 			},
 		},
 	}

@@ -20,7 +20,6 @@ const SearchTerm = "Python"
 const Location = ""
 const Workers = 3
 const BufferSize = 3
-const Pages = 10
 
 func coordinator(ctx context.Context) {
 	fmt.Println("coordinator started")
@@ -29,17 +28,23 @@ func coordinator(ctx context.Context) {
 
 	scrapers := []scrapy.JobScraper{
 		//&boards.GlassDoor{},
-		&boards.LinkedIn{
-			BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
-			JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
+		//&boards.LinkedIn{
+		//	BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
+		//	JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
+		//	Params: []struct{ Key, Value string }{
+		//		{"location", Location},
+		//		{"keywords", SearchTerm},
+		//		{"f_TPR", "r86400"},
+		//	},
+		//},
+		//&boards.Indeed{},
+		&boards.JobberMan{
+			BaseUrl: "https://www.jobberman.com/jobs",
 			Params: []struct{ Key, Value string }{
+				{"q", SearchTerm},
 				{"location", Location},
-				{"keywords", SearchTerm},
-				{"f_TPR", "r86400"},
 			},
 		},
-		//&boards.Indeed{},
-		//&boards.JobberMan{},
 	}
 
 	results := make(chan []*scrapy.Job, 10)

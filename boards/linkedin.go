@@ -108,22 +108,19 @@ func (l *LinkedIn) FetchJobDetails(jobID string) (string, string) {
 	return applicants, posted
 }
 
-const LinkedInBuffer = 5
-const LinkedInWorkers = 3
-
 func (l *LinkedIn) Run(globalWg *sync.WaitGroup, results chan<- []*scrapy.Job) {
 	defer globalWg.Done()
-	pagesCh := make(chan int, LinkedInBuffer)
+	pagesCh := make(chan int, scrapy.Buffer)
 	var wg sync.WaitGroup
 
 	// Spin up workers
-	for i := 0; i < LinkedInWorkers; i++ {
+	for i := 0; i < scrapy.Workers; i++ {
 		wg.Add(1)
 		go scrapy.Worker(pagesCh, l, results, &wg)
 	}
 
 	// Feed pages
-	for i := 1; i <= 10; i++ {
+	for i := 1; i <= scrapy.Pages; i++ {
 		pagesCh <- i
 	}
 	close(pagesCh)

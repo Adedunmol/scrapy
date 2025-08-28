@@ -17,8 +17,6 @@ import (
 
 const Email = "oyewaleadedunmola@gmail.com"
 const SearchTerm = "Python"
-const Workers = 3
-const BufferSize = 3
 
 func coordinator(ctx context.Context) {
 	fmt.Println("coordinator started")
@@ -27,22 +25,28 @@ func coordinator(ctx context.Context) {
 
 	scrapers := []scrapy.JobScraper{
 		//&boards.GlassDoor{},
-		&boards.LinkedIn{
-			BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
-			JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
-			Params: []struct{ Key, Value string }{
-				{"location", scrapy.Location},
-				{"keywords", SearchTerm},
-				{"f_TPR", "r86400"},
-			},
-		},
-		//&boards.Indeed{},
-		&boards.JobberMan{
-			BaseUrl: "https://www.jobberman.com/jobs",
+		//&boards.LinkedIn{
+		//	BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
+		//	JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
+		//	Params: []struct{ Key, Value string }{
+		//		{"location", scrapy.Location},
+		//		{"keywords", SearchTerm},
+		//		{"f_TPR", "r86400"},
+		//	},
+		//},
+		&boards.Indeed{
+			BaseUrl: "https://www.indeed.com/jobs",
 			Params: []struct{ Key, Value string }{
 				{"q", SearchTerm},
+				{"l", scrapy.Location},
 			},
 		},
+		//&boards.JobberMan{
+		//	BaseUrl: "https://www.jobberman.com/jobs",
+		//	Params: []struct{ Key, Value string }{
+		//		{"q", SearchTerm},
+		//	},
+		//},
 	}
 
 	results := make(chan []*scrapy.Job, 10)

@@ -11,7 +11,7 @@ import (
 )
 
 type Indeed struct {
-	BaseUrl string // https://www.indeed.com/jobs?q=python&l=Texas
+	BaseUrl string // ?q=python&l=Texas
 	JobUrl  string
 	Params  []struct{ Key, Value string }
 }

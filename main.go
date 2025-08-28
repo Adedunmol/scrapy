@@ -27,15 +27,15 @@ func coordinator(ctx context.Context) {
 
 	scrapers := []scrapy.JobScraper{
 		//&boards.GlassDoor{},
-		//&boards.LinkedIn{
-		//	BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
-		//	JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
-		//	Params: []struct{ Key, Value string }{
-		//		{"location", Location},
-		//		{"keywords", SearchTerm},
-		//		{"f_TPR", "r86400"},
-		//	},
-		//},
+		&boards.LinkedIn{
+			BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
+			JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
+			Params: []struct{ Key, Value string }{
+				{"location", scrapy.Location},
+				{"keywords", SearchTerm},
+				{"f_TPR", "r86400"},
+			},
+		},
 		//&boards.Indeed{},
 		&boards.JobberMan{
 			BaseUrl: "https://www.jobberman.com/jobs",

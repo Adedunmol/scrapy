@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/Adedunmol/scrapy/api"
@@ -20,40 +21,22 @@ func main() {
 		log.Fatalf("error loading .env file: %s", err)
 	}
 
-	//ctx := context.Background()
+	fmt.Println("entered")
+
+	ctx := context.Background()
 	// start job scheduler
-	s, err := gocron.NewScheduler()
-	if err != nil {
+	s, scheduleErr := gocron.NewScheduler()
+	if scheduleErr != nil {
 		// handle error
-		err = fmt.Errorf("error creating new scheduler: %v", errors.Unwrap(err))
-		log.Fatal(err)
+		err = fmt.Errorf("error creating new scheduler: %v", errors.Unwrap(scheduleErr))
+		//log.Fatal(err)
+		fmt.Println("nigga")
 	}
 
-	// register the function to be executed (run coordinator)
-	_, err = s.NewJob(
-		gocron.DurationJob(
-			3*time.Minute,
-		),
-		//gocron.NewTask(
-		//	scrapy.Coordinator,
-		//	ctx,
-		//	true,
-		//	scrapy.SearchTerm,
-		//	scrapy.Location,
-		//),
-		gocron.NewTask(
-			func() {
-				fmt.Println("running")
-			},
-		),
-	)
-	if err != nil {
-		err = fmt.Errorf("error adding job to scheduler: %v", errors.Unwrap(err))
-		log.Fatal(err)
-	}
+	fmt.Println("entered2")
 
 	r := api.Routes()
-
+	//
 	port := os.Getenv("PORT")
 
 	if port == "" {
@@ -69,6 +52,31 @@ func main() {
 		}
 	}()
 
+	// register the function to be executed (run coordinator)
+	_, err = s.NewJob(
+		gocron.DurationJob(
+			1*time.Minute,
+		),
+		//gocron.NewTask(
+		//	scrapy.Coordinator,
+		//	ctx,
+		//	true,
+		//	scrapy.SearchTerm,
+		//	scrapy.Location,
+		//),
+		gocron.NewTask(
+			func(ctx context.Context) {
+				fmt.Println("running")
+			},
+			ctx,
+		),
+	)
+	if err != nil {
+		err = fmt.Errorf("error adding job to scheduler: %v", errors.Unwrap(err))
+		log.Fatal(err)
+	}
+
+	fmt.Println("entered3")
 	// start the scheduler
 	s.Start()
 
@@ -76,10 +84,14 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
+	fmt.Println("entered4")
 	<-stop
+	fmt.Println("entered6")
 
 	err = s.Shutdown()
 	if err != nil {
 		log.Fatal(fmt.Errorf("error shutting down scheduler: %v", errors.Unwrap(err)))
 	}
+
+	fmt.Println("entered5")
 }

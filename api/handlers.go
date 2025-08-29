@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/Adedunmol/scrapy/scrapy"
 	"net/http"
 )
@@ -30,12 +31,20 @@ func WriteJSONResponse(responseWriter http.ResponseWriter, data interface{}, sta
 }
 
 func FetchJobsHandler(responseWriter http.ResponseWriter, request *http.Request) {
-
+	fmt.Println("handler 1")
 	var body JobRequest
 
 	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
+		response := Response{
+			Status:  "error",
+			Message: "error decoding body",
+		}
+
+		WriteJSONResponse(responseWriter, response, http.StatusBadRequest)
 		return
 	}
+
+	fmt.Println("handler 2")
 
 	if body.SearchTerm == "" {
 		response := Response{
@@ -46,15 +55,18 @@ func FetchJobsHandler(responseWriter http.ResponseWriter, request *http.Request)
 		WriteJSONResponse(responseWriter, response, http.StatusBadRequest)
 		return
 	}
+	fmt.Println("handler 3")
 
 	// call the coordinator function to get all the jobs
 	jobs := scrapy.Coordinator(context.Background(), false, body.SearchTerm, body.Location)
+	fmt.Println("handler 4")
 
 	response := Response{
 		Status:  "success",
 		Message: "scraped jobs gotten successfully",
 		Data:    map[string]interface{}{"jobs": jobs},
 	}
+	fmt.Println("handler 5")
 
 	WriteJSONResponse(responseWriter, response, http.StatusOK)
 	return

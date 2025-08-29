@@ -19,7 +19,15 @@ type Indeed struct {
 func (i *Indeed) AddPagination(page int) string {
 	dst := i.BuildUrl()
 
-	return dst + fmt.Sprintf("&p=%d", page)
+	// pagination starts with nil, then 10 -> 20 -> 30
+	page -= 1
+	if page == 0 {
+		return dst
+	}
+
+	page = page * 10
+
+	return dst + fmt.Sprintf("&start=%d", page)
 }
 
 func (i *Indeed) BuildUrl() string {

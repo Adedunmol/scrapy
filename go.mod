@@ -10,6 +10,7 @@ require (
 	github.com/antchfx/htmlquery v1.3.4 // indirect
 	github.com/antchfx/xmlquery v1.4.4 // indirect
 	github.com/antchfx/xpath v1.3.3 // indirect
+	github.com/go-chi/chi/v5 v5.2.3 // indirect
 	github.com/go-co-op/gocron/v2 v2.16.3 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gocolly/colly v1.2.0 // indirect

@@ -1,0 +1,56 @@
+package api
+
+import (
+	"encoding/json"
+	"net/http"
+)
+
+type Response struct {
+	Status  string      `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
+type JobRequest struct {
+	//Email      string `json:"email"`
+	SearchTerm string `json:"search_term"`
+	Location   string `json:"location"`
+}
+
+func WriteJSONResponse(responseWriter http.ResponseWriter, data interface{}, statusCode int) {
+	responseWriter.Header().Set("Content-Type", "application/json")
+	responseWriter.WriteHeader(statusCode)
+
+	if err := json.NewEncoder(responseWriter).Encode(data); err != nil {
+		http.Error(responseWriter, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func FetchJobsHandler(responseWriter http.ResponseWriter, request *http.Request) {
+
+	var body JobRequest
+
+	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
+		return
+	}
+
+	if body.SearchTerm == "" {
+		response := Response{
+			Status:  "error",
+			Message: "search term is missing",
+		}
+
+		WriteJSONResponse(responseWriter, response, http.StatusBadRequest)
+	}
+
+	// call the coordinator function to get all the jobs
+
+	response := Response{
+		Status:  "success",
+		Message: "check your mail for the jobs also",
+		Data:    map[string]interface{}{"jobs": ""},
+	}
+
+	WriteJSONResponse(responseWriter, response, http.StatusOK)
+}

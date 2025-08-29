@@ -1,9 +1,8 @@
-package main
+package scrapy
 
 import (
 	"bytes"
 	"fmt"
-	"github.com/Adedunmol/scrapy/scrapy"
 	"html/template"
 	"net/smtp"
 	"os"
@@ -14,7 +13,7 @@ import (
 const Subject = "These are the job postings for today."
 const Template = "jobs"
 
-func SendMail(email string, parsedJobs []*scrapy.Job) error {
+func SendMail(email string, parsedJobs []*Job) error {
 
 	from := strings.TrimSpace(os.Getenv("FROM_EMAIL"))
 	password := strings.TrimSpace(os.Getenv("FROM_EMAIL_PASSWORD"))
@@ -57,7 +56,7 @@ func SendMail(email string, parsedJobs []*scrapy.Job) error {
 	)
 }
 
-func parseTemplate(data []*scrapy.Job) (string, error) {
+func parseTemplate(data []*Job) (string, error) {
 
 	currDir, err := os.Getwd()
 	if err != nil {

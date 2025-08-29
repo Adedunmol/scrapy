@@ -4,73 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Adedunmol/scrapy/boards"
+	"github.com/Adedunmol/scrapy/api"
 	"github.com/Adedunmol/scrapy/scrapy"
 	"github.com/go-co-op/gocron/v2"
 	"github.com/joho/godotenv"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"time"
 )
-
-const Email = "oyewaleadedunmola@gmail.com"
-const SearchTerm = "Python"
-
-func coordinator(ctx context.Context) {
-	fmt.Println("coordinator started")
-
-	var wg sync.WaitGroup
-
-	scrapers := []scrapy.JobScraper{
-		//&boards.GlassDoor{},
-		//&boards.LinkedIn{
-		//	BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
-		//	JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
-		//	Params: []struct{ Key, Value string }{
-		//		{"location", scrapy.Location},
-		//		{"keywords", SearchTerm},
-		//		{"f_TPR", "r86400"},
-		//	},
-		//},
-		&boards.Indeed{
-			BaseUrl: "https://www.indeed.com/jobs",
-			Params: []struct{ Key, Value string }{
-				{"q", SearchTerm},
-				{"l", scrapy.Location},
-			},
-		},
-		//&boards.JobberMan{
-		//	BaseUrl: "https://www.jobberman.com/jobs",
-		//	Params: []struct{ Key, Value string }{
-		//		{"q", SearchTerm},
-		//	},
-		//},
-	}
-
-	results := make(chan []*scrapy.Job, 10)
-
-	for _, scraper := range scrapers {
-		wg.Add(1)
-		go scraper.Run(&wg, results)
-	}
-
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
-	scrapedJobs := scrapy.Collate(results)
-
-	fmt.Println("scraped jobs: ", scrapedJobs)
-
-	err := SendMail(Email, scrapedJobs)
-	if err != nil {
-		log.Printf("error occurred while sending mail: %v", errors.Unwrap(err))
-	}
-	fmt.Println("coordinator finished")
-}
 
 func main() {
 
@@ -94,14 +37,32 @@ func main() {
 			3*time.Minute,
 		),
 		gocron.NewTask(
-			coordinator,
+			scrapy.Coordinator,
 			ctx,
+			true,
 		),
 	)
 	if err != nil {
 		err = fmt.Errorf("error adding job to scheduler: %v", errors.Unwrap(err))
 		log.Fatal(err)
 	}
+
+	r := api.Routes()
+
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		port = "8080"
+	}
+
+	server := &http.Server{Addr: fmt.Sprintf(":%s", port), Handler: r}
+
+	go func() {
+		log.Printf("starting web server on port %s", port)
+		if err := server.ListenAndServe(); err != nil {
+			log.Fatal(fmt.Errorf("error starting web server on port %s: %w", port, err))
+		}
+	}()
 
 	// start the scheduler
 	s.Start()

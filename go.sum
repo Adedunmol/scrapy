@@ -9,6 +9,8 @@ github.com/antchfx/xmlquery v1.4.4/go.mod h1:AEPEEPYE9GnA2mj5Ur2L5Q5/2PycJ0N9Fus
 github.com/antchfx/xpath v1.3.3 h1:tmuPQa1Uye0Ym1Zn65vxPgfltWb/Lxu2jeqIGteJSRs=
 github.com/antchfx/xpath v1.3.3/go.mod h1:i54GszH55fYfBmoZXapTHN8T8tkcHfRgLyVwwqzXNcs=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/go-chi/chi/v5 v5.2.3 h1:WQIt9uxdsAbgIYgid+BpYc+liqQZGMHRaUwp0JUcvdE=
+github.com/go-chi/chi/v5 v5.2.3/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
 github.com/go-co-op/gocron/v2 v2.16.3 h1:kYqukZqBa8RC2+AFAHnunmKcs9GRTjwBo8WRF3I6cbI=
 github.com/go-co-op/gocron/v2 v2.16.3/go.mod h1:aTf7/+5Jo2E+cyAqq625UQ6DzpkV96b22VHIUAt6l3c=
 github.com/gobwas/glob v0.2.3 h1:A4xDbljILXROh+kObIiy5kIaPYD8e96x1tgBhUI5J+Y=

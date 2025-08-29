@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/Adedunmol/scrapy/api"
-	"github.com/Adedunmol/scrapy/scrapy"
 	"github.com/go-co-op/gocron/v2"
 	"github.com/joho/godotenv"
 	"log"
@@ -22,7 +20,7 @@ func main() {
 		log.Fatalf("error loading .env file: %s", err)
 	}
 
-	ctx := context.Background()
+	//ctx := context.Background()
 	// start job scheduler
 	s, err := gocron.NewScheduler()
 	if err != nil {
@@ -36,12 +34,17 @@ func main() {
 		gocron.DurationJob(
 			3*time.Minute,
 		),
+		//gocron.NewTask(
+		//	scrapy.Coordinator,
+		//	ctx,
+		//	true,
+		//	scrapy.SearchTerm,
+		//	scrapy.Location,
+		//),
 		gocron.NewTask(
-			scrapy.Coordinator,
-			ctx,
-			true,
-			scrapy.SearchTerm,
-			scrapy.Location,
+			func() {
+				fmt.Println("running")
+			},
 		),
 	)
 	if err != nil {

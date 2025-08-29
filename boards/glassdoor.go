@@ -3,7 +3,7 @@ package boards
 import (
 	"context"
 	"fmt"
-	"github.com/Adedunmol/scrapy/scrapy"
+	"github.com/Adedunmol/scrapy/core"
 	"github.com/gocolly/colly"
 	"net/url"
 	"strings"
@@ -40,13 +40,13 @@ func (g *GlassDoor) BuildUrl() string {
 	return dst
 }
 
-func (g *GlassDoor) ScrapeJobs(ctx context.Context, url string) ([]*scrapy.Job, error) {
+func (g *GlassDoor) ScrapeJobs(ctx context.Context, url string) ([]*core.Job, error) {
 	fmt.Println("scraping url:", url)
 	c := colly.NewCollector(
-		colly.UserAgent(scrapy.UserAgent),
+		colly.UserAgent(core.UserAgent),
 	)
 
-	var res []*scrapy.Job
+	var res []*core.Job
 
 	c.OnHTML("li.JobList__jobItem", func(e *colly.HTMLElement) {
 		job := g.ParseJob(e)
@@ -61,8 +61,8 @@ func (g *GlassDoor) ScrapeJobs(ctx context.Context, url string) ([]*scrapy.Job, 
 	return res, nil
 }
 
-func (g *GlassDoor) ParseJob(e *colly.HTMLElement) scrapy.Job {
-	var job scrapy.Job
+func (g *GlassDoor) ParseJob(e *colly.HTMLElement) core.Job {
+	var job core.Job
 
 	job.Title = strings.TrimSpace(e.ChildText("a.JobCard_jobTitle"))
 	job.Company = strings.TrimSpace(e.ChildText("div.JobCard_jobEmployerName"))
@@ -78,15 +78,15 @@ func (g *GlassDoor) FetchJobDetails(jobID string) (string, string) {
 	return "", ""
 }
 
-func (g *GlassDoor) Run(globalWg *sync.WaitGroup, results chan<- []*scrapy.Job) {
+func (g *GlassDoor) Run(globalWg *sync.WaitGroup, results chan<- []*core.Job) {
 	defer globalWg.Done()
-	pagesCh := make(chan int, scrapy.Buffer)
+	pagesCh := make(chan int, core.Buffer)
 	var wg sync.WaitGroup
 
 	// Spin up workers
-	for i := 0; i < scrapy.Workers; i++ {
+	for i := 0; i < core.Workers; i++ {
 		wg.Add(1)
-		go scrapy.Worker(pagesCh, g, results, &wg)
+		go core.Worker(pagesCh, g, results, &wg)
 	}
 
 	// Feed pages

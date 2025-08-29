@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Adedunmol/scrapy/scrapy"
+	"github.com/Adedunmol/scrapy/core"
 	"github.com/gocolly/colly"
 	"net/url"
 	"strings"
@@ -41,14 +41,14 @@ func (l *LinkedIn) BuildUrl() string {
 	return dst
 }
 
-func (l *LinkedIn) ScrapeJobs(ctx context.Context, url string) ([]*scrapy.Job, error) {
+func (l *LinkedIn) ScrapeJobs(ctx context.Context, url string) ([]*core.Job, error) {
 	fmt.Println("scraping url:", url)
 	// Instantiate default collector
 	c := colly.NewCollector()
 
-	c.UserAgent = scrapy.UserAgent
+	c.UserAgent = core.UserAgent
 
-	var res []*scrapy.Job
+	var res []*core.Job
 	// On every a element which has href attribute call callback
 	c.OnHTML("li div.base-card", func(e *colly.HTMLElement) {
 		job := l.ParseJob(e)
@@ -68,9 +68,9 @@ func (l *LinkedIn) ScrapeJobs(ctx context.Context, url string) ([]*scrapy.Job, e
 	return res, nil
 }
 
-func (l *LinkedIn) ParseJob(e *colly.HTMLElement) scrapy.Job {
+func (l *LinkedIn) ParseJob(e *colly.HTMLElement) core.Job {
 	// parse jobs gotten from scraping
-	var job scrapy.Job
+	var job core.Job
 	job.Id = strings.Split(e.Attr("data-entity-urn"), ":")[3]
 
 	job.Title = strings.TrimSpace(e.ChildText("h3.base-search-card__title"))
@@ -86,7 +86,7 @@ func (l *LinkedIn) FetchJobDetails(jobID string) (string, string) {
 
 	c := colly.NewCollector()
 
-	c.UserAgent = scrapy.UserAgent
+	c.UserAgent = core.UserAgent
 
 	var applicants, posted string
 
@@ -108,19 +108,19 @@ func (l *LinkedIn) FetchJobDetails(jobID string) (string, string) {
 	return applicants, posted
 }
 
-func (l *LinkedIn) Run(globalWg *sync.WaitGroup, results chan<- []*scrapy.Job) {
+func (l *LinkedIn) Run(globalWg *sync.WaitGroup, results chan<- []*core.Job) {
 	defer globalWg.Done()
-	pagesCh := make(chan int, scrapy.Buffer)
+	pagesCh := make(chan int, core.Buffer)
 	var wg sync.WaitGroup
 
 	// Spin up workers
-	for i := 0; i < scrapy.Workers; i++ {
+	for i := 0; i < core.Workers; i++ {
 		wg.Add(1)
-		go scrapy.Worker(pagesCh, l, results, &wg)
+		go core.Worker(pagesCh, l, results, &wg)
 	}
 
 	// Feed pages
-	for i := 1; i <= scrapy.Pages; i++ {
+	for i := 1; i <= core.Pages; i++ {
 		pagesCh <- i
 	}
 	close(pagesCh)

@@ -44,6 +44,7 @@ func FetchJobsHandler(responseWriter http.ResponseWriter, request *http.Request)
 		}
 
 		WriteJSONResponse(responseWriter, response, http.StatusBadRequest)
+		return
 	}
 
 	// call the coordinator function to get all the jobs
@@ -56,4 +57,5 @@ func FetchJobsHandler(responseWriter http.ResponseWriter, request *http.Request)
 	}
 
 	WriteJSONResponse(responseWriter, response, http.StatusOK)
+	return
 }

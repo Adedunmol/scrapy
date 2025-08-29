@@ -47,7 +47,7 @@ func FetchJobsHandler(responseWriter http.ResponseWriter, request *http.Request)
 	}
 
 	// call the coordinator function to get all the jobs
-	jobs := scrapy.Coordinator(context.Background(), false)
+	jobs := scrapy.Coordinator(context.Background(), false, body.SearchTerm, body.Location)
 
 	response := Response{
 		Status:  "success",

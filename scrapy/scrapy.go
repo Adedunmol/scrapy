@@ -82,36 +82,36 @@ func Collate(results <-chan []*Job) []*Job {
 	return scrapedJobs
 }
 
-func Coordinator(ctx context.Context, scheduled bool) []*Job {
+func Coordinator(ctx context.Context, scheduled bool, searchTerm, location string) []*Job {
 	fmt.Println("coordinator started")
 
 	var wg sync.WaitGroup
 
 	scrapers := []JobScraper{
 		//&boards.GlassDoor{},
-		//&boards.LinkedIn{
-		//	BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
-		//	JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
-		//	Params: []struct{ Key, Value string }{
-		//		{"location", scrapy.Location},
-		//		{"keywords", SearchTerm},
-		//		{"f_TPR", "r86400"},
-		//	},
-		//},
-		&boards.Indeed{
-			BaseUrl: "https://www.indeed.com/jobs",
+		&boards.LinkedIn{
+			BaseUrl: "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
+			JobUrl:  "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/",
 			Params: []struct{ Key, Value string }{
-				{"q", SearchTerm},
-				{"l", Location},
-				{"sort", "date"},
+				{"location", location},
+				{"keywords", searchTerm},
+				{"f_TPR", "r86400"},
 			},
 		},
-		//&boards.JobberMan{
-		//	BaseUrl: "https://www.jobberman.com/jobs",
+		//&boards.Indeed{
+		//	BaseUrl: "https://www.indeed.com/jobs",
 		//	Params: []struct{ Key, Value string }{
 		//		{"q", SearchTerm},
+		//		{"l", Location},
+		//		{"sort", "date"},
 		//	},
 		//},
+		&boards.JobberMan{
+			BaseUrl: "https://www.jobberman.com/jobs",
+			Params: []struct{ Key, Value string }{
+				{"q", searchTerm},
+			},
+		},
 	}
 
 	results := make(chan []*Job, 10)

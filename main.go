@@ -40,6 +40,8 @@ func main() {
 			scrapy.Coordinator,
 			ctx,
 			true,
+			scrapy.SearchTerm,
+			scrapy.Location,
 		),
 	)
 	if err != nil {

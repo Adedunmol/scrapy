@@ -1,7 +1,9 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
+	"github.com/Adedunmol/scrapy/scrapy"
 	"net/http"
 )
 
@@ -45,11 +47,12 @@ func FetchJobsHandler(responseWriter http.ResponseWriter, request *http.Request)
 	}
 
 	// call the coordinator function to get all the jobs
+	jobs := scrapy.Coordinator(context.Background(), false)
 
 	response := Response{
 		Status:  "success",
-		Message: "check your mail for the jobs also",
-		Data:    map[string]interface{}{"jobs": ""},
+		Message: "scraped jobs gotten successfully",
+		Data:    map[string]interface{}{"jobs": jobs},
 	}
 
 	WriteJSONResponse(responseWriter, response, http.StatusOK)

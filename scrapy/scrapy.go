@@ -82,7 +82,7 @@ func Collate(results <-chan []*Job) []*Job {
 	return scrapedJobs
 }
 
-func Coordinator(ctx context.Context, scheduled bool) {
+func Coordinator(ctx context.Context, scheduled bool) []*Job {
 	fmt.Println("coordinator started")
 
 	var wg sync.WaitGroup
@@ -138,4 +138,6 @@ func Coordinator(ctx context.Context, scheduled bool) {
 	}
 
 	fmt.Println("coordinator finished")
+
+	return scrapedJobs
 }

@@ -21,22 +21,17 @@ func main() {
 		log.Fatalf("error loading .env file: %s", err)
 	}
 
-	fmt.Println("entered")
-
 	ctx := context.Background()
 	// start job scheduler
 	s, scheduleErr := gocron.NewScheduler()
 	if scheduleErr != nil {
 		// handle error
 		err = fmt.Errorf("error creating new scheduler: %v", errors.Unwrap(scheduleErr))
-		//log.Fatal(err)
-		fmt.Println("nigga")
+		log.Fatal(err)
 	}
 
-	fmt.Println("entered2")
-
 	r := api.Routes()
-	//
+
 	port := os.Getenv("PORT")
 
 	if port == "" {
@@ -76,7 +71,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("entered3")
 	// start the scheduler
 	s.Start()
 
@@ -84,14 +78,11 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
-	fmt.Println("entered4")
 	<-stop
-	fmt.Println("entered6")
 
 	err = s.Shutdown()
 	if err != nil {
 		log.Fatal(fmt.Errorf("error shutting down scheduler: %v", errors.Unwrap(err)))
 	}
 
-	fmt.Println("entered5")
 }

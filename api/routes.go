@@ -1,16 +1,16 @@
 package api
 
 import (
-	"fmt"
+	"github.com/Adedunmol/scrapy/api/auth"
 	"github.com/go-chi/chi/v5"
 )
 
 func Routes() *chi.Mux {
 	r := chi.NewRouter()
 
-	fmt.Println("registering route")
 	r.Post("/fetch-jobs", FetchJobsHandler)
-	fmt.Println("registered route")
+
+	auth.SetupRoutes(r)
 
 	return r
 }

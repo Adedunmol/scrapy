@@ -14,9 +14,7 @@ type Handler struct {
 	Queue queue.Queue
 }
 
-const OtpExpiration = 30
-
-func (h *Handler) CreateUserHandler(responseWriter http.ResponseWriter, request *http.Request) {
+func (h *Handler) RegisterUserHandler(responseWriter http.ResponseWriter, request *http.Request) {
 
 	var body CreateUserBody
 

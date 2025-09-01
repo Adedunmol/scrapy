@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/Adedunmol/scrapy/api/auth"
-	"github.com/Adedunmol/scrapy/api/helpers"
+	"github.com/Adedunmol/scrapy/tests"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,7 +12,7 @@ import (
 
 func TestRegisterUserHandler(t *testing.T) {
 	t.Run("successfully registers a user", func(t *testing.T) {
-		store := &helpers.StubUserStore{Users: make([]auth.User, 0)}
+		store := &tests.StubUserStore{Users: make([]auth.User, 0)}
 		handler := &auth.Handler{Store: store}
 
 		data := []byte(`{
@@ -36,8 +36,8 @@ func TestRegisterUserHandler(t *testing.T) {
 			"message": "user created successfully",
 		}
 
-		helpers.AssertResponseCode(t, rec.Code, http.StatusCreated)
-		helpers.AssertResponseBody(t, got, want)
+		tests.AssertResponseCode(t, rec.Code, http.StatusCreated)
+		tests.AssertResponseBody(t, got, want)
 
 		if len(store.Users) != 1 {
 			t.Errorf("expected 1 user in store, got %d", len(store.Users))
@@ -45,7 +45,7 @@ func TestRegisterUserHandler(t *testing.T) {
 	})
 
 	t.Run("invalid JSON body returns 400", func(t *testing.T) {
-		store := &helpers.StubUserStore{}
+		store := &tests.StubUserStore{}
 		handler := &auth.Handler{Store: store}
 
 		// missing closing brace
@@ -59,15 +59,15 @@ func TestRegisterUserHandler(t *testing.T) {
 		var got map[string]interface{}
 		_ = json.Unmarshal(rec.Body.Bytes(), &got)
 
-		helpers.AssertResponseCode(t, rec.Code, http.StatusBadRequest)
-		helpers.AssertResponseBody(t, got, map[string]interface{}{
+		tests.AssertResponseCode(t, rec.Code, http.StatusBadRequest)
+		tests.AssertResponseBody(t, got, map[string]interface{}{
 			"status":  "error",
 			"message": "error decoding body",
 		})
 	})
 
 	t.Run("validation error returns 400", func(t *testing.T) {
-		store := &helpers.StubUserStore{}
+		store := &tests.StubUserStore{}
 		handler := &auth.Handler{Store: store}
 
 		// Missing required email & password
@@ -78,7 +78,7 @@ func TestRegisterUserHandler(t *testing.T) {
 
 		handler.RegisterUserHandler(rec, req)
 
-		helpers.AssertResponseCode(t, rec.Code, http.StatusBadRequest)
+		tests.AssertResponseCode(t, rec.Code, http.StatusBadRequest)
 
 		var got map[string]interface{}
 		_ = json.Unmarshal(rec.Body.Bytes(), &got)
@@ -90,7 +90,7 @@ func TestRegisterUserHandler(t *testing.T) {
 	})
 
 	t.Run("store returns conflict (409)", func(t *testing.T) {
-		store := &helpers.StubUserStore{
+		store := &tests.StubUserStore{
 			Users: []auth.User{
 				{ID: 1, Email: "jane@example.com"},
 			},
@@ -109,7 +109,7 @@ func TestRegisterUserHandler(t *testing.T) {
 		req := registerUserRequest(data)
 		handler.RegisterUserHandler(rec, req)
 
-		helpers.AssertResponseCode(t, rec.Code, http.StatusConflict)
+		tests.AssertResponseCode(t, rec.Code, http.StatusConflict)
 
 		var got map[string]interface{}
 		_ = json.Unmarshal(rec.Body.Bytes(), &got)
@@ -120,7 +120,7 @@ func TestRegisterUserHandler(t *testing.T) {
 	})
 
 	t.Run("store returns generic error (500)", func(t *testing.T) {
-		store := &helpers.StubUserStore{Fail: true}
+		store := &tests.StubUserStore{Fail: true}
 		handler := &auth.Handler{Store: store}
 
 		data := []byte(`{
@@ -136,7 +136,7 @@ func TestRegisterUserHandler(t *testing.T) {
 
 		handler.RegisterUserHandler(rec, req)
 
-		helpers.AssertResponseCode(t, rec.Code, http.StatusInternalServerError)
+		tests.AssertResponseCode(t, rec.Code, http.StatusInternalServerError)
 	})
 }
 

@@ -1,6 +1,9 @@
-package helpers
+package tests
 
-import "github.com/Adedunmol/scrapy/api/auth"
+import (
+	"github.com/Adedunmol/scrapy/api/auth"
+	"github.com/Adedunmol/scrapy/api/helpers"
+)
 
 type StubUserStore struct {
 	Users []auth.User
@@ -12,7 +15,7 @@ func (s *StubUserStore) CreateUser(body *auth.CreateUserBody) error {
 	if !s.Fail {
 		for _, u := range s.Users {
 			if u.Email == body.Email {
-				return ErrConflict
+				return helpers.ErrConflict
 			}
 		}
 
@@ -23,7 +26,7 @@ func (s *StubUserStore) CreateUser(body *auth.CreateUserBody) error {
 		return nil
 	}
 
-	return ErrInternalServer
+	return helpers.ErrInternalServer
 }
 
 func (s *StubUserStore) FindUserByEmail(email string) (auth.User, error) {
@@ -33,7 +36,7 @@ func (s *StubUserStore) FindUserByEmail(email string) (auth.User, error) {
 			return u, nil
 		}
 	}
-	return auth.User{}, ErrNotFound
+	return auth.User{}, helpers.ErrNotFound
 }
 
 func (s *StubUserStore) ComparePasswords(storedPassword, candidatePassword string) bool {

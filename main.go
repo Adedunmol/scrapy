@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Adedunmol/scrapy/api"
+	"github.com/Adedunmol/scrapy/database"
 	"github.com/go-co-op/gocron/v2"
 	"github.com/joho/godotenv"
 	"log"
@@ -22,6 +23,12 @@ func main() {
 	}
 
 	ctx := context.Background()
+
+	pool, err := database.ConnectDB(ctx)
+	if err != nil {
+		log.Fatalf("error connecting to database: %s", err)
+	}
+
 	// start job scheduler
 	s, scheduleErr := gocron.NewScheduler()
 	if scheduleErr != nil {
@@ -30,7 +37,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := api.Routes()
+	r := api.Routes(pool)
 
 	port := os.Getenv("PORT")
 

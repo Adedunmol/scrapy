@@ -140,8 +140,132 @@ func TestRegisterUserHandler(t *testing.T) {
 	})
 }
 
+func TestPOSTLogin(t *testing.T) {
+	t.Run("returns success when login is valid", func(t *testing.T) {
+		store := tests.StubUserStore{Users: []auth.User{
+			{ID: 1, Email: "adedunmola@gmail.com", Password: "password"},
+		}}
+		server := &auth.Handler{Store: &store}
+
+		data := []byte(`{ "email": "adedunmola@gmail.com", "password": "password" }`)
+		request := loginUserRequest(data)
+		response := httptest.NewRecorder()
+
+		server.LoginUserHandler(response, request)
+
+		var got map[string]interface{}
+		_ = json.Unmarshal(response.Body.Bytes(), &got)
+
+		tests.AssertResponseCode(t, response.Code, http.StatusOK)
+		if got["status"] != "success" {
+			t.Errorf("expected status success, got %v", got["status"])
+		}
+		if got["token"] != "mocked-token" {
+			t.Errorf("expected mocked token, got %v", got["token"])
+		}
+	})
+
+	t.Run("returns error when body cannot be decoded", func(t *testing.T) {
+		store := tests.StubUserStore{Users: []auth.User{}}
+		server := &auth.Handler{Store: &store}
+
+		data := []byte(`{ "email": "adedunmola@gmail.com", "password": "password"`) // invalid JSON
+		request := loginUserRequest(data)
+		response := httptest.NewRecorder()
+
+		server.LoginUserHandler(response, request)
+
+		var got map[string]interface{}
+		_ = json.Unmarshal(response.Body.Bytes(), &got)
+
+		want := map[string]interface{}{
+			"status":  "error",
+			"message": "error decoding body",
+		}
+
+		tests.AssertResponseCode(t, response.Code, http.StatusBadRequest)
+		tests.AssertResponseBody(t, got, want)
+	})
+
+	t.Run("returns error when user not found", func(t *testing.T) {
+		store := tests.StubUserStore{Users: []auth.User{}}
+		server := &auth.Handler{Store: &store}
+
+		data := []byte(`{ "email": "unknown@gmail.com", "password": "password" }`)
+		request := loginUserRequest(data)
+		response := httptest.NewRecorder()
+
+		server.LoginUserHandler(response, request)
+
+		var got map[string]interface{}
+		_ = json.Unmarshal(response.Body.Bytes(), &got)
+
+		want := map[string]interface{}{
+			"status":  "error",
+			"message": "user not found",
+		}
+
+		tests.AssertResponseCode(t, response.Code, http.StatusBadRequest)
+		tests.AssertResponseBody(t, got, want)
+	})
+
+	t.Run("returns error when password does not match", func(t *testing.T) {
+		store := tests.StubUserStore{Users: []auth.User{
+			{ID: 1, Email: "adedunmola@gmail.com", Password: "password"},
+		}}
+		server := &auth.Handler{Store: &store}
+
+		data := []byte(`{ "email": "adedunmola@gmail.com", "password": "wrongpass" }`)
+		request := loginUserRequest(data)
+		response := httptest.NewRecorder()
+
+		server.LoginUserHandler(response, request)
+
+		var got map[string]interface{}
+		_ = json.Unmarshal(response.Body.Bytes(), &got)
+
+		want := map[string]interface{}{
+			"status":  "error",
+			"message": "password does not match",
+		}
+
+		tests.AssertResponseCode(t, response.Code, http.StatusBadRequest)
+		tests.AssertResponseBody(t, got, want)
+	})
+
+	t.Run("returns error when token generation fails", func(t *testing.T) {
+		store := tests.StubUserStore{Users: []auth.User{
+			{ID: 1, Email: "adedunmola@gmail.com", Password: "password"},
+		}}
+		server := &auth.Handler{Store: &store}
+
+		data := []byte(`{ "email": "adedunmola@gmail.com", "password": "password" }`)
+		request := loginUserRequest(data)
+		response := httptest.NewRecorder()
+
+		server.LoginUserHandler(response, request)
+
+		var got map[string]interface{}
+		_ = json.Unmarshal(response.Body.Bytes(), &got)
+
+		want := map[string]interface{}{
+			"status":  "error",
+			"message": "token generation failed",
+		}
+
+		tests.AssertResponseCode(t, response.Code, http.StatusInternalServerError)
+		tests.AssertResponseBody(t, got, want)
+	})
+}
+
 func registerUserRequest(data []byte) *http.Request {
 	req := httptest.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(data))
 
+	return req
+}
+
+func loginUserRequest(body []byte) *http.Request {
+	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
 	return req
 }

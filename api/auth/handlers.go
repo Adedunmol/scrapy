@@ -82,72 +82,63 @@ func (h *Handler) CreateUserHandler(responseWriter http.ResponseWriter, request 
 	return
 }
 
-//func (h *Handler) LoginUserHandler(responseWriter http.ResponseWriter, request *http.Request) {
-//	body, problems, err := helpers.DecodeAndValidate[*LoginUserBody](request)
-//
-//	var clientError helpers.ClientError
-//	ok := errors.As(err, &clientError)
-//
-//	if err != nil && problems == nil {
-//		helpers.HandleError(responseWriter, helpers.NewHTTPError(err, http.StatusBadRequest, "invalid request body", nil))
-//		return
-//	}
-//
-//	if err != nil && ok {
-//		helpers.HandleError(responseWriter, helpers.NewHTTPError(err, http.StatusBadRequest, "invalid request body", problems))
-//		return
-//	}
-//
-//	data, err := h.Store.FindUserByEmail(body.Email)
-//	if err != nil {
-//		helpers.HandleError(responseWriter, helpers.ErrUnauthorized)
-//		return
-//	}
-//
-//	match := h.Store.ComparePasswords(data.Password, body.Password)
-//	if !match {
-//		helpers.HandleError(responseWriter, helpers.ErrUnauthorized)
-//		return
-//	}
-//
-//	token, err := helpers.GenerateToken(data.ID, data.Email, data.Verified)
-//	if err != nil {
-//		helpers.HandleError(responseWriter, helpers.NewHTTPError(err, http.StatusInternalServerError, "internal server error", nil))
-//		return
-//	}
-//
-//	refreshToken, err := helpers.GenerateToken(data.ID, data.Email, data.Verified)
-//	if err != nil {
-//		helpers.HandleError(responseWriter, helpers.NewHTTPError(err, http.StatusInternalServerError, "internal server error", nil))
-//		return
-//	}
-//
-//	updateUser := UpdateUserBody{RefreshToken: refreshToken}
-//
-//	if _, err = h.Store.UpdateUser(data.ID, updateUser); err != nil {
-//		helpers.HandleError(responseWriter, helpers.ErrInternalServerError)
-//		return
-//	}
-//
-//	expires := time.Now().AddDate(0, 1, 0)
-//
-//	cookie := &http.Cookie{
-//		Name:     "refresh_token",
-//		Value:    refreshToken,
-//		Path:     "/",
-//		Expires:  expires,
-//		Secure:   true,
-//		HttpOnly: true,
-//		MaxAge:   86400,
-//	}
-//
-//	http.SetCookie(responseWriter, cookie)
-//
-//	response := Response{
-//		Status:  "Success",
-//		Message: "User logged in",
-//		Data:    map[string]interface{}{"token": token, "expiration": helpers.TokenExpiration},
-//	}
-//
-//	helpers.WriteJSONResponse(responseWriter, response, http.StatusOK)
-//}
+func (h *Handler) LoginUserHandler(responseWriter http.ResponseWriter, request *http.Request) {
+	var body LoginUserBody
+
+	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
+		response := helpers.Response{
+			Status:  "error",
+			Message: "error decoding body",
+		}
+
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusBadRequest)
+		return
+	}
+
+	validationErr := helpers.Validate(body)
+	if validationErr != nil {
+		response := helpers.Response{
+			Status:  "error",
+			Message: validationErr.Error(),
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusBadRequest)
+		return
+	}
+
+	data, err := h.Store.FindUserByEmail(body.Email)
+	if err != nil {
+		response := helpers.Response{
+			Status:  "error",
+			Message: err.Error(),
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusNotFound)
+		return
+	}
+
+	match := h.Store.ComparePasswords(data.Password, body.Password)
+	if !match {
+		response := helpers.Response{
+			Status:  "error",
+			Message: "password does not match",
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusUnauthorized)
+		return
+	}
+	token, err := helpers.GenerateToken(data.ID, data.Email)
+	if err != nil {
+		response := helpers.Response{
+			Status:  "error",
+			Message: err.Error(),
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
+		return
+	}
+
+	response := helpers.Response{
+		Status:  "success",
+		Message: "user logged in successfully",
+		Data:    map[string]interface{}{"token": token, "expiration": helpers.TokenExpiration},
+	}
+
+	helpers.WriteJSONResponse(responseWriter, response, http.StatusOK)
+}

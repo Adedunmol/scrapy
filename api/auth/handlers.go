@@ -49,7 +49,7 @@ func (h *Handler) RegisterUserHandler(responseWriter http.ResponseWriter, reques
 	}
 
 	body.Password = string(hashedPassword)
-	err = h.Store.CreateUser(body)
+	err = h.Store.CreateUser(&body)
 
 	if err != nil {
 		ok := errors.As(err, &helpers.ErrConflict)

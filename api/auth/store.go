@@ -36,9 +36,8 @@ func (s *UserStore) CreateUser(ctx context.Context, body *CreateUserBody) (User,
 	ctx, cancel := s.WithTimeout(ctx)
 	defer cancel()
 
-	query := "INSERT INTO users (name, email, first_name, last_name, password) VALUES (@username, @email, @firstName, @lastName, @password) RETURNING id, email, first_name, last_name;"
+	query := "INSERT INTO users (email, first_name, last_name, password) VALUES (@email, @firstName, @lastName, @password) RETURNING id, email, first_name, last_name;"
 	args := pgx.NamedArgs{
-		"username":  body.Username,
 		"email":     body.Email,
 		"firstName": body.FirstName,
 		"lastName":  body.LastName,
@@ -72,7 +71,7 @@ func (s *UserStore) ComparePasswords(password, candidatePassword string) bool {
 	return false
 }
 
-func (s *UserStore) CreatePreferences(ctx context.Context, preferences []int, userID uuid.UUID) error {
+func (s *UserStore) CreatePreferences(ctx context.Context, preferences []uuid.UUID, userID uuid.UUID) error {
 	ctx, cancel := s.WithTimeout(ctx)
 	defer cancel()
 

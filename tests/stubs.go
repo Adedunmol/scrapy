@@ -22,7 +22,7 @@ func (s *StubUserStore) CreateUser(ctx context.Context, body *auth.CreateUserBod
 		}
 
 		// ID: 1,
-		userData := auth.User{FirstName: body.FirstName, LastName: body.LastName, Username: body.Username, Email: body.Email, Password: body.Password}
+		userData := auth.User{FirstName: body.FirstName, LastName: body.LastName, Email: body.Email, Password: body.Password}
 
 		s.Users = append(s.Users, userData)
 

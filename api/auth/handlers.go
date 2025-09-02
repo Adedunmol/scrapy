@@ -1,10 +1,12 @@
 package auth
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/Adedunmol/scrapy/api/helpers"
 	"github.com/Adedunmol/scrapy/queue"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
@@ -14,8 +16,13 @@ type Handler struct {
 	Queue queue.Queue
 }
 
+/*
+RegisterUserHandler is to create the user and check the prefilled categories table
+for valid search terms the user picked and then create entries in the preferences table for the user
+*/
 func (h *Handler) RegisterUserHandler(responseWriter http.ResponseWriter, request *http.Request) {
 
+	ctx := context.Background()
 	var body CreateUserBody
 
 	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
@@ -49,7 +56,26 @@ func (h *Handler) RegisterUserHandler(responseWriter http.ResponseWriter, reques
 	}
 
 	body.Password = string(hashedPassword)
-	err = h.Store.CreateUser(&body)
+
+	categories, err := h.Store.GetCategories(ctx)
+	if err != nil {
+		response := helpers.Response{
+			Status:  "error",
+			Message: err.Error(),
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
+		return
+	}
+
+	var validSearchTerms []uuid.UUID
+
+	for _, uc := range body.SearchTerms {
+		if id, ok := categories[uc]; ok {
+			validSearchTerms = append(validSearchTerms, id)
+		}
+	}
+
+	user, err := h.Store.CreateUser(&body)
 
 	if err != nil {
 		ok := errors.As(err, &helpers.ErrConflict)
@@ -63,6 +89,16 @@ func (h *Handler) RegisterUserHandler(responseWriter http.ResponseWriter, reques
 			return
 		}
 
+		response := helpers.Response{
+			Status:  "error",
+			Message: err.Error(),
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
+		return
+	}
+
+	err = h.Store.CreatePreferences(ctx, validSearchTerms, user.ID)
+	if err != nil {
 		response := helpers.Response{
 			Status:  "error",
 			Message: err.Error(),

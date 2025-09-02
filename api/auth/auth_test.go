@@ -93,7 +93,7 @@ func TestRegisterUserHandler(t *testing.T) {
 	t.Run("store returns conflict (409)", func(t *testing.T) {
 		store := &tests.StubUserStore{
 			Users: []auth.User{
-				{ID: 1, Email: "jane@example.com"},
+				{Email: "jane@example.com"}, //ID: 1,
 			},
 		}
 		handler := &auth.Handler{Store: store}
@@ -144,7 +144,7 @@ func TestRegisterUserHandler(t *testing.T) {
 func TestPOSTLogin(t *testing.T) {
 	t.Run("returns success when login is valid", func(t *testing.T) {
 		store := tests.StubUserStore{Users: []auth.User{
-			{ID: 1, Email: "adedunmola@gmail.com", Password: "password"},
+			{Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
 		}}
 		server := &auth.Handler{Store: &store}
 
@@ -212,7 +212,7 @@ func TestPOSTLogin(t *testing.T) {
 
 	t.Run("returns error when password does not match", func(t *testing.T) {
 		store := tests.StubUserStore{Users: []auth.User{
-			{ID: 1, Email: "adedunmola@gmail.com", Password: "password"},
+			{Email: "adedunmola@gmail.com", Password: "password"}, // ID: 1,
 		}}
 		server := &auth.Handler{Store: &store}
 
@@ -236,7 +236,7 @@ func TestPOSTLogin(t *testing.T) {
 
 	t.Run("returns error when token generation fails", func(t *testing.T) {
 		store := tests.StubUserStore{Users: []auth.User{
-			{ID: 1, Email: "adedunmola@gmail.com", Password: "password"},
+			{Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
 		}}
 		server := &auth.Handler{Store: &store}
 

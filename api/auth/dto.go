@@ -1,5 +1,7 @@
 package auth
 
+import "github.com/google/uuid"
+
 type CreateUserBody struct {
 	FirstName   string   `json:"first_name" validate:"required"`
 	LastName    string   `json:"last_name" validate:"required"`
@@ -15,10 +17,10 @@ type LoginUserBody struct {
 }
 
 type User struct {
-	ID        int    `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Password  string `json:"password"`
-	Username  string `json:"username"`
-	Email     string `json:"email"`
+	ID        uuid.UUID `json:"id"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Password  string    `json:"password"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
 }

@@ -1,9 +1,12 @@
 package helpers
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 const TokenExpiration = 30 * time.Minute
 
-func GenerateToken(id int, username string) (string, error) {
+func GenerateToken(id uuid.UUID, username string) (string, error) {
 	return "", nil
 }

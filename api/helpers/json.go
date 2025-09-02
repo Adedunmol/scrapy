@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"net/http"
+	"reflect"
 	"strings"
 )
 
@@ -27,6 +28,18 @@ func WriteJSONResponse(responseWriter http.ResponseWriter, data interface{}, sta
 
 var validate *validator.Validate
 
+func init() {
+	validate = validator.New(validator.WithRequiredStructEnabled())
+
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return "" // skip if json:"-"
+		}
+		return name
+	})
+}
+
 func Validate(i any) error {
 	err := validate.Struct(i)
 	if err == nil {
@@ -46,7 +59,7 @@ func Validate(i any) error {
 		validationErrors = append(validationErrors, fmt.Sprintf("%s: %s", fe.Field(), message))
 	}
 
-	return fmt.Errorf("helpers failed: %s", strings.Join(validationErrors, ", "))
+	return fmt.Errorf("validation failed: %s", strings.Join(validationErrors, ", "))
 }
 
 func getErrorMessage(e validator.FieldError) string {

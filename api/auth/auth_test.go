@@ -7,6 +7,7 @@ import (
 	"github.com/Adedunmol/scrapy/tests"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
@@ -36,8 +37,8 @@ func TestRegisterUserHandler(t *testing.T) {
 			"message": "user created successfully",
 		}
 
-		tests.AssertResponseCode(t, rec.Code, http.StatusCreated)
-		tests.AssertResponseBody(t, got, want)
+		assertResponseCode(t, rec.Code, http.StatusCreated)
+		assertResponseBody(t, got, want)
 
 		if len(store.Users) != 1 {
 			t.Errorf("expected 1 user in store, got %d", len(store.Users))
@@ -59,8 +60,8 @@ func TestRegisterUserHandler(t *testing.T) {
 		var got map[string]interface{}
 		_ = json.Unmarshal(rec.Body.Bytes(), &got)
 
-		tests.AssertResponseCode(t, rec.Code, http.StatusBadRequest)
-		tests.AssertResponseBody(t, got, map[string]interface{}{
+		assertResponseCode(t, rec.Code, http.StatusBadRequest)
+		assertResponseBody(t, got, map[string]interface{}{
 			"status":  "error",
 			"message": "error decoding body",
 		})
@@ -78,7 +79,7 @@ func TestRegisterUserHandler(t *testing.T) {
 
 		handler.RegisterUserHandler(rec, req)
 
-		tests.AssertResponseCode(t, rec.Code, http.StatusBadRequest)
+		assertResponseCode(t, rec.Code, http.StatusBadRequest)
 
 		var got map[string]interface{}
 		_ = json.Unmarshal(rec.Body.Bytes(), &got)
@@ -109,7 +110,7 @@ func TestRegisterUserHandler(t *testing.T) {
 		req := registerUserRequest(data)
 		handler.RegisterUserHandler(rec, req)
 
-		tests.AssertResponseCode(t, rec.Code, http.StatusConflict)
+		assertResponseCode(t, rec.Code, http.StatusConflict)
 
 		var got map[string]interface{}
 		_ = json.Unmarshal(rec.Body.Bytes(), &got)
@@ -136,7 +137,7 @@ func TestRegisterUserHandler(t *testing.T) {
 
 		handler.RegisterUserHandler(rec, req)
 
-		tests.AssertResponseCode(t, rec.Code, http.StatusInternalServerError)
+		assertResponseCode(t, rec.Code, http.StatusInternalServerError)
 	})
 }
 
@@ -156,7 +157,7 @@ func TestPOSTLogin(t *testing.T) {
 		var got map[string]interface{}
 		_ = json.Unmarshal(response.Body.Bytes(), &got)
 
-		tests.AssertResponseCode(t, response.Code, http.StatusOK)
+		assertResponseCode(t, response.Code, http.StatusOK)
 		if got["status"] != "success" {
 			t.Errorf("expected status success, got %v", got["status"])
 		}
@@ -183,8 +184,8 @@ func TestPOSTLogin(t *testing.T) {
 			"message": "error decoding body",
 		}
 
-		tests.AssertResponseCode(t, response.Code, http.StatusBadRequest)
-		tests.AssertResponseBody(t, got, want)
+		assertResponseCode(t, response.Code, http.StatusBadRequest)
+		assertResponseBody(t, got, want)
 	})
 
 	t.Run("returns error when user not found", func(t *testing.T) {
@@ -205,8 +206,8 @@ func TestPOSTLogin(t *testing.T) {
 			"message": "user not found",
 		}
 
-		tests.AssertResponseCode(t, response.Code, http.StatusBadRequest)
-		tests.AssertResponseBody(t, got, want)
+		assertResponseCode(t, response.Code, http.StatusBadRequest)
+		assertResponseBody(t, got, want)
 	})
 
 	t.Run("returns error when password does not match", func(t *testing.T) {
@@ -229,8 +230,8 @@ func TestPOSTLogin(t *testing.T) {
 			"message": "password does not match",
 		}
 
-		tests.AssertResponseCode(t, response.Code, http.StatusBadRequest)
-		tests.AssertResponseBody(t, got, want)
+		assertResponseCode(t, response.Code, http.StatusBadRequest)
+		assertResponseBody(t, got, want)
 	})
 
 	t.Run("returns error when token generation fails", func(t *testing.T) {
@@ -253,8 +254,8 @@ func TestPOSTLogin(t *testing.T) {
 			"message": "token generation failed",
 		}
 
-		tests.AssertResponseCode(t, response.Code, http.StatusInternalServerError)
-		tests.AssertResponseBody(t, got, want)
+		assertResponseCode(t, response.Code, http.StatusInternalServerError)
+		assertResponseBody(t, got, want)
 	})
 }
 
@@ -268,4 +269,18 @@ func loginUserRequest(body []byte) *http.Request {
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	return req
+}
+
+func assertResponseCode(t *testing.T, got, want int) {
+	t.Helper()
+	if got != want {
+		t.Errorf("response code = %d, want %d", got, want)
+	}
+}
+
+func assertResponseBody(t *testing.T, got, want map[string]interface{}) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("response body = %v, want %v", got, want)
+	}
 }

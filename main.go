@@ -7,7 +7,11 @@ import (
 	"github.com/Adedunmol/scrapy/api"
 	"github.com/Adedunmol/scrapy/database"
 	"github.com/go-co-op/gocron/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
+	"github.com/pressly/goose/v3"
 	"log"
 	"net/http"
 	"os"
@@ -15,8 +19,33 @@ import (
 	"time"
 )
 
-func main() {
+func runMigrations(db *pgxpool.Pool, dir string) error {
+	goose.SetBaseFS(nil) // required if you're not embedding migrations
 
+	sqlDB := stdlib.OpenDBFromPool(db)
+	if sqlDB == nil {
+		return fmt.Errorf("could not unwrap pgxpool to *sql.DB")
+	}
+
+	err := goose.Up(sqlDB, dir)
+	if err != nil {
+		// Check if it's a "no files found" or "dir not exist" error
+		if errors.Is(err, os.ErrNotExist) {
+			log.Println("No migration directory found, skipping...")
+			return nil
+		}
+		if err.Error() == "no migration files found" {
+			log.Println("No migration files found, skipping...")
+			return nil
+		}
+		return err
+	}
+
+	log.Println("Migrations applied successfully")
+	return nil
+}
+
+func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("error loading .env file: %s", err)
@@ -25,9 +54,18 @@ func main() {
 	ctx := context.Background()
 
 	pool, err := database.ConnectDB(ctx)
+
+	defer pool.Close()
 	if err != nil {
 		log.Fatalf("error connecting to database: %s", err)
 	}
+
+	// Run migrations
+	if err := runMigrations(pool, "./database/migrations"); err != nil {
+		log.Fatal(fmt.Errorf("failed to run migrations: %w", err))
+	}
+
+	fmt.Println("Migrations applied successfully")
 
 	// start job scheduler
 	s, scheduleErr := gocron.NewScheduler()

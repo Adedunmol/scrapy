@@ -2,15 +2,20 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/Adedunmol/scrapy/api/helpers"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
 )
 
+const UniqueViolationCode = "23505"
+
 type Store interface {
-	CreateUser(body *CreateUserBody) (User, error)
+	CreateUser(ctx context.Context, body *CreateUserBody) (User, error)
 	FindUserByEmail(email string) (User, error)
 	ComparePasswords(password, candidatePassword string) bool
 	GetCategories(ctx context.Context) (map[string]uuid.UUID, error)
@@ -22,14 +27,40 @@ type UserStore struct {
 	queryTimeout time.Duration
 }
 
-func NewAuthStore(db *pgxpool.Pool, queryTimeout time.Duration) *UserStore {
+func NewUserStore(db *pgxpool.Pool, queryTimeout time.Duration) *UserStore {
 
 	return &UserStore{db: db, queryTimeout: queryTimeout}
 }
 
-func (s *UserStore) CreateUser(body *CreateUserBody) (User, error) {
+func (s *UserStore) CreateUser(ctx context.Context, body *CreateUserBody) (User, error) {
+	ctx, cancel := s.WithTimeout(ctx)
+	defer cancel()
 
-	return User{}, nil
+	query := "INSERT INTO users (name, email, first_name, last_name, password) VALUES (@username, @email, @firstName, @lastName, @password) RETURNING id, email, first_name, last_name;"
+	args := pgx.NamedArgs{
+		"username":  body.Username,
+		"email":     body.Email,
+		"firstName": body.FirstName,
+		"lastName":  body.LastName,
+		"password":  body.Password,
+	}
+
+	var user User
+
+	row := s.db.QueryRow(ctx, query, args)
+
+	err := row.Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName)
+
+	if err != nil {
+		var e *pgconn.PgError
+		if errors.As(err, &e) && e.Code == UniqueViolationCode {
+			return User{}, helpers.ErrConflict
+		}
+		err = errors.Join(helpers.ErrInternalServer, err)
+		return User{}, fmt.Errorf("error scanning row (create user): %w", err)
+	}
+
+	return user, nil
 }
 
 func (s *UserStore) FindUserByEmail(email string) (User, error) {

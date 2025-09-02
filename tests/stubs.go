@@ -12,7 +12,7 @@ type StubUserStore struct {
 	Fail  bool
 }
 
-func (s *StubUserStore) CreateUser(body *auth.CreateUserBody) (auth.User, error) {
+func (s *StubUserStore) CreateUser(ctx context.Context, body *auth.CreateUserBody) (auth.User, error) {
 
 	if !s.Fail {
 		for _, u := range s.Users {

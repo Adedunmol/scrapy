@@ -75,7 +75,7 @@ func (h *Handler) RegisterUserHandler(responseWriter http.ResponseWriter, reques
 		}
 	}
 
-	user, err := h.Store.CreateUser(&body)
+	user, err := h.Store.CreateUser(ctx, &body)
 
 	if err != nil {
 		ok := errors.As(err, &helpers.ErrConflict)

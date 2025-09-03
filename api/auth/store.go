@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -16,7 +17,7 @@ const UniqueViolationCode = "23505"
 
 type Store interface {
 	CreateUser(ctx context.Context, body *CreateUserBody) (User, error)
-	FindUserByEmail(email string) (User, error)
+	FindUserByEmail(ctx context.Context, email string) (User, error)
 	ComparePasswords(password, candidatePassword string) bool
 	GetCategories(ctx context.Context) (map[string]uuid.UUID, error)
 	CreatePreferences(ctx context.Context, preferences []uuid.UUID, userID uuid.UUID) error
@@ -62,13 +63,37 @@ func (s *UserStore) CreateUser(ctx context.Context, body *CreateUserBody) (User,
 	return user, nil
 }
 
-func (s *UserStore) FindUserByEmail(email string) (User, error) {
+func (s *UserStore) FindUserByEmail(ctx context.Context, email string) (User, error) {
 
-	return User{}, nil
+	ctx, cancel := s.WithTimeout(ctx)
+	defer cancel()
+
+	query := "SELECT id, first_name, last_name, email, password FROM users WHERE email = @email;"
+	args := pgx.NamedArgs{
+		"email": email,
+	}
+
+	var user User
+
+	row := s.db.QueryRow(ctx, query, args)
+
+	err := row.Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.Password)
+
+	if err != nil {
+		err = errors.Join(helpers.ErrInternalServer, err)
+		return User{}, fmt.Errorf("error scanning row (find user by email): %w", err)
+	}
+
+	return user, nil
 }
 
 func (s *UserStore) ComparePasswords(password, candidatePassword string) bool {
-	return false
+	err := bcrypt.CompareHashAndPassword([]byte(password), []byte(candidatePassword))
+
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func (s *UserStore) CreatePreferences(ctx context.Context, preferences []uuid.UUID, userID uuid.UUID) error {

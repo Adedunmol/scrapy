@@ -117,6 +117,8 @@ func (h *Handler) RegisterUserHandler(responseWriter http.ResponseWriter, reques
 }
 
 func (h *Handler) LoginUserHandler(responseWriter http.ResponseWriter, request *http.Request) {
+	ctx := context.Background()
+
 	var body LoginUserBody
 
 	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
@@ -139,7 +141,7 @@ func (h *Handler) LoginUserHandler(responseWriter http.ResponseWriter, request *
 		return
 	}
 
-	data, err := h.Store.FindUserByEmail(body.Email)
+	data, err := h.Store.FindUserByEmail(ctx, body.Email)
 	if err != nil {
 		response := helpers.Response{
 			Status:  "error",

@@ -32,7 +32,7 @@ func (s *StubUserStore) CreateUser(ctx context.Context, body *auth.CreateUserBod
 	return auth.User{}, helpers.ErrInternalServer
 }
 
-func (s *StubUserStore) FindUserByEmail(email string) (auth.User, error) {
+func (s *StubUserStore) FindUserByEmail(ctx context.Context, email string) (auth.User, error) {
 
 	for _, u := range s.Users {
 		if u.Email == email {

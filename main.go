@@ -48,7 +48,7 @@ func runMigrations(db *pgxpool.Pool, dir string) error {
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("error loading .env file: %s", err)
+		log.Printf("error loading .env file: %s. relying on enviroment variables", err)
 	}
 
 	ctx := context.Background()

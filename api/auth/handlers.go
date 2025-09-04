@@ -79,7 +79,7 @@ func (h *Handler) RegisterUserHandler(responseWriter http.ResponseWriter, reques
 	user, err := h.Store.CreateUser(ctx, &body)
 
 	if err != nil {
-		ok := errors.As(err, &helpers.ErrConflict)
+		ok := errors.Is(err, helpers.ErrConflict)
 
 		if ok {
 			response := helpers.Response{
@@ -148,7 +148,7 @@ func (h *Handler) LoginUserHandler(responseWriter http.ResponseWriter, request *
 			Status:  "error",
 			Message: err.Error(),
 		}
-		helpers.WriteJSONResponse(responseWriter, response, http.StatusNotFound)
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusBadRequest)
 		return
 	}
 
@@ -212,7 +212,7 @@ func (h *Handler) CreateCompany(responseWriter http.ResponseWriter, request *htt
 	company, err := h.Store.CreateCompany(ctx, &body)
 
 	if err != nil {
-		ok := errors.As(err, &helpers.ErrConflict)
+		ok := errors.Is(err, helpers.ErrConflict)
 
 		log.Println("ok: ", ok)
 		if ok {

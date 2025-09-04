@@ -8,8 +8,9 @@ import (
 )
 
 type StubUserStore struct {
-	Users []auth.User
-	Fail  bool
+	Users     []auth.User
+	Fail      bool
+	Companies []auth.Company
 }
 
 func (s *StubUserStore) CreateUser(ctx context.Context, body *auth.CreateUserBody) (auth.User, error) {
@@ -55,5 +56,21 @@ func (s *StubUserStore) CreatePreferences(ctx context.Context, preferences []uui
 }
 
 func (s *StubUserStore) CreateCompany(ctx context.Context, body *auth.CreateCompanyBody) (auth.Company, error) {
-	return auth.Company{}, nil
+
+	if !s.Fail {
+		for _, u := range s.Companies {
+			if u.Email == body.Email {
+				return auth.Company{}, helpers.ErrConflict
+			}
+		}
+
+		// ID: 1,
+		companyData := auth.Company{Email: body.Email, Name: body.Name, UserID: body.UserID}
+
+		s.Companies = append(s.Companies, companyData)
+
+		return companyData, nil
+	}
+
+	return auth.Company{}, helpers.ErrInternalServer
 }

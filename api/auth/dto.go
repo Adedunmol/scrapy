@@ -1,6 +1,9 @@
 package auth
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type CreateUserBody struct {
 	FirstName string `json:"first_name" validate:"required"`
@@ -16,6 +19,12 @@ type LoginUserBody struct {
 	Password string `json:"password" validate:"required"`
 }
 
+type CreateCompanyBody struct {
+	Name   string    `json:"name" validate:"required"`
+	Email  string    `json:"email" validate:"required,email"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	FirstName string    `json:"first_name"`
@@ -23,4 +32,13 @@ type User struct {
 	Password  string    `json:"password"`
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
+}
+
+type Company struct {
+	ID        uuid.UUID  `json:"id"`
+	Name      string     `json:"name"`
+	Email     string     `json:"email"`
+	UserID    uuid.UUID  `json:"user_id"`
+	CreatedAt *time.Time `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
 }

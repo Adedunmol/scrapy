@@ -53,3 +53,7 @@ func (s *StubUserStore) GetCategories(ctx context.Context) (map[string]uuid.UUID
 func (s *StubUserStore) CreatePreferences(ctx context.Context, preferences []uuid.UUID, userID uuid.UUID) error {
 	return nil
 }
+
+func (s *StubUserStore) CreateCompany(ctx context.Context, body *auth.CreateCompanyBody) (auth.Company, error) {
+	return auth.Company{}, nil
+}

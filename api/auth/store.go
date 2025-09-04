@@ -21,6 +21,7 @@ type Store interface {
 	ComparePasswords(password, candidatePassword string) bool
 	GetCategories(ctx context.Context) (map[string]uuid.UUID, error)
 	CreatePreferences(ctx context.Context, preferences []uuid.UUID, userID uuid.UUID) error
+	CreateCompany(ctx context.Context, body *CreateCompanyBody) (Company, error)
 }
 
 type UserStore struct {
@@ -147,6 +148,35 @@ func (s *UserStore) GetCategories(ctx context.Context) (map[string]uuid.UUID, er
 	}
 
 	return categories, nil
+}
+
+func (s *UserStore) CreateCompany(ctx context.Context, body *CreateCompanyBody) (Company, error) {
+	ctx, cancel := s.WithTimeout(ctx)
+	defer cancel()
+
+	query := "INSERT INTO companies (name, email, user_id) VALUES (@name, @email, @userID) RETURNING id, name, email, user_id, created_at, updated_at;"
+	args := pgx.NamedArgs{
+		"email":  body.Email,
+		"name":   body.Name,
+		"userID": body.UserID,
+	}
+
+	var company Company
+
+	row := s.db.QueryRow(ctx, query, args)
+
+	err := row.Scan(&company.ID, &company.Name, &company.Email, &company.UserID, &company.CreatedAt, &company.UpdatedAt)
+
+	if err != nil {
+		var e *pgconn.PgError
+		if errors.As(err, &e) && e.Code == UniqueViolationCode {
+			return Company{}, helpers.ErrConflict
+		}
+		err = errors.Join(helpers.ErrInternalServer, err)
+		return Company{}, fmt.Errorf("error scanning row (create company): %w", err)
+	}
+
+	return company, nil
 }
 
 func (s *UserStore) WithTimeout(ctx context.Context) (context.Context, context.CancelFunc) {

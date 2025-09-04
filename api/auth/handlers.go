@@ -8,6 +8,7 @@ import (
 	"github.com/Adedunmol/scrapy/queue"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 )
 
@@ -177,4 +178,66 @@ func (h *Handler) LoginUserHandler(responseWriter http.ResponseWriter, request *
 	}
 
 	helpers.WriteJSONResponse(responseWriter, response, http.StatusOK)
+}
+
+func (h *Handler) CreateCompany(responseWriter http.ResponseWriter, request *http.Request) {
+	ctx := context.Background()
+
+	userID := request.Context().Value("user_id")
+
+	var body CreateCompanyBody
+
+	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
+		response := helpers.Response{
+			Status:  "error",
+			Message: "error decoding body",
+		}
+
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusBadRequest)
+		return
+	}
+
+	validationErr := helpers.Validate(body)
+	if validationErr != nil {
+		response := helpers.Response{
+			Status:  "error",
+			Message: validationErr.Error(),
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusBadRequest)
+		return
+	}
+
+	body.UserID = userID.(uuid.UUID)
+
+	company, err := h.Store.CreateCompany(ctx, &body)
+
+	if err != nil {
+		ok := errors.As(err, &helpers.ErrConflict)
+
+		log.Println("ok: ", ok)
+		if ok {
+			response := helpers.Response{
+				Status:  "error",
+				Message: err.Error(),
+			}
+			helpers.WriteJSONResponse(responseWriter, response, http.StatusConflict)
+			return
+		}
+
+		response := helpers.Response{
+			Status:  "error",
+			Message: err.Error(),
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
+		return
+	}
+
+	response := helpers.Response{
+		Status:  "success",
+		Message: "company created successfully",
+		Data:    company,
+	}
+
+	helpers.WriteJSONResponse(responseWriter, response, http.StatusCreated)
+	return
 }

@@ -61,7 +61,7 @@ func GenerateToken(id uuid.UUID, email string) (string, error) {
 	return token.SignedString(signingKey)
 }
 
-func ParseJWT(tokenStr string) (*Claims, error) {
+func DecodeToken(tokenStr string) (*Claims, error) {
 
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		// Ensure signing method is HMAC

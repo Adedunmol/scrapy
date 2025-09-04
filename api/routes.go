@@ -13,12 +13,12 @@ func Routes(db *pgxpool.Pool) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"}, // frontends allowed
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by browsers
+		MaxAge:           300,
 	}))
 
 	r.Get("/check", func(w http.ResponseWriter, r *http.Request) {

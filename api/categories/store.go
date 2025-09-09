@@ -2,6 +2,7 @@ package categories
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
@@ -34,13 +35,13 @@ func (c *CategoryStore) CreateCategory(ctx context.Context, body *CreateCategory
 	args := pgx.NamedArgs{
 		"name": body.Name,
 	}
-	
+
 	var category Category
 	err := c.db.QueryRow(ctx, query, args).
 		Scan(&category.ID, &category.Name, &category.CreatedAt, &category.UpdatedAt)
 
 	if err != nil {
-		return Category{}, err
+		return Category{}, fmt.Errorf("error inserting category: %v", err)
 	}
 
 	return category, nil
@@ -56,13 +57,13 @@ func (c *CategoryStore) GetCategories(ctx context.Context) ([]Category, error) {
 
 	rows, err := c.db.Query(ctx, query)
 	if err != nil {
-		return categories, err
+		return categories, fmt.Errorf("error fetching categories: %v", err)
 	}
 
 	for rows.Next() {
 		var category Category
 		if err := rows.Scan(&category.ID, &category.Name, &category.CreatedAt, &category.UpdatedAt); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error scanning categories: %v", err)
 		}
 		categories = append(categories, category)
 	}

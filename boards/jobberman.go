@@ -107,7 +107,7 @@ func (j *JobberMan) FetchJobDetails(jobID string) (string, string) {
 }
 
 func (j *JobberMan) Run(globalWg *sync.WaitGroup, results chan<- []*core.Job) {
-	defer globalWg.Done()
+	//defer globalWg.Done()
 	pagesCh := make(chan int, core.Buffer)
 	var wg sync.WaitGroup
 

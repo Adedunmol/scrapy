@@ -7,6 +7,7 @@ import (
 	"github.com/Adedunmol/scrapy/api/helpers"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"log"
 	"time"
 )
 
@@ -57,6 +58,8 @@ func (j *JobStore) BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) er
 	ctx, cancel := j.WithTimeout(ctx)
 	defer cancel()
 
+	log.Println("batch create jobs 1")
+
 	query := `
     INSERT INTO jobs (
         job_title,
@@ -78,6 +81,8 @@ func (j *JobStore) BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) er
 
 	batch := &pgx.Batch{}
 
+	log.Println("batch create jobs 2")
+
 	for _, job := range jobs {
 		args := pgx.NamedArgs{
 			"jobTitle":   job.JobTitle,
@@ -90,15 +95,22 @@ func (j *JobStore) BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) er
 		batch.Queue(query, args)
 	}
 
+	log.Println("batch create jobs 3")
+
 	results := j.db.SendBatch(ctx, batch)
+
+	log.Println("batch create jobs 4")
 	defer results.Close()
 
 	for _, _ = range jobs {
 		_, err := results.Exec()
 		if err != nil {
-			return fmt.Errorf("error while creating preferences: %w", err)
+			log.Println(fmt.Errorf("error while batch creating jobs: %v", err))
+			return fmt.Errorf("error while creating preferences: %v", err)
 		}
 	}
+
+	log.Println("batch create jobs 5")
 
 	return results.Close()
 }

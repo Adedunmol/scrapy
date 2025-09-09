@@ -17,14 +17,16 @@ func Collate(results <-chan []*core.Job) []*core.Job {
 	// fetch the slices of jobs from the output channel and merge everything and return the result
 	var scrapedJobs []*core.Job
 
-	for jobs := range results {
-		scrapedJobs = append(scrapedJobs, jobs...)
+	for jobsData := range results {
+		scrapedJobs = append(scrapedJobs, jobsData...)
 	}
 
 	return scrapedJobs
 }
 
-func Coordinator(ctx context.Context, scheduled bool, searchTerm, location string, categoryStore categories.Store, jobStore jobs.JobStore) []*core.Job {
+const ScraperID = 123
+
+func Coordinator(ctx context.Context, scheduled bool, location string, categoryStore categories.Store, jobStore jobs.Store) []*core.Job {
 	fmt.Println("coordinator started")
 
 	// fetch jobs from the categories table
@@ -126,12 +128,18 @@ func Coordinator(ctx context.Context, scheduled bool, searchTerm, location strin
 			DatePosted: job.DatePosted,
 			CategoryID: job.CategoryID, // you pass this in when converting
 			Origin:     "scraper",      // e.g. "LinkedIn" or "Jobberman"
-			OriginID:   job.Id,         // use scraped Id as the origin ID
+			OriginID:   ScraperID,      // use scraped Id as the origin ID
 		}
 		bodies = append(bodies, body)
 	}
 
-	jobStore.BatchCreateJobs(ctx, bodies)
+	log.Println("inserting jobs")
+	err = jobStore.BatchCreateJobs(ctx, bodies)
+	log.Println("inserted jobs")
+
+	if err != nil {
+		log.Println(err)
+	}
 
 	if scheduled {
 		err := SendMail(core.Email, scrapedJobs)

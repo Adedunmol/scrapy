@@ -8,7 +8,7 @@ type CreateJobBody struct {
 	DatePosted string    `json:"date_posted"`
 	CategoryID uuid.UUID `json:"category_id"`
 	Origin     string    `json:"origin"`
-	OriginID   string    `json:"origin_id"`
+	OriginID   int       `json:"origin_id"`
 }
 
 type Job struct {

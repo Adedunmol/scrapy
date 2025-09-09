@@ -101,7 +101,7 @@ func (s *UserStore) CreatePreferences(ctx context.Context, preferences []uuid.UU
 	ctx, cancel := s.WithTimeout(ctx)
 	defer cancel()
 
-	query := "INSERT INTO preferences (user_id, catgories) VALUES (@userID, @categoryID)"
+	query := "INSERT INTO preferences (user_id, categories) VALUES (@userID, @categoryID)"
 	batch := &pgx.Batch{}
 
 	for _, pref := range preferences {

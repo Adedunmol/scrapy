@@ -6,15 +6,18 @@ import (
 	"fmt"
 	"github.com/Adedunmol/scrapy/core"
 	"github.com/gocolly/colly"
+	"github.com/google/uuid"
 	"net/url"
 	"strings"
 	"sync"
 )
 
 type LinkedIn struct {
-	BaseUrl string
-	JobUrl  string
-	Params  []struct{ Key, Value string }
+	BaseUrl    string
+	JobUrl     string
+	Params     []struct{ Key, Value string }
+	Category   string
+	CategoryID uuid.UUID
 }
 
 func (l *LinkedIn) AddPagination(page int) string {
@@ -57,6 +60,9 @@ func (l *LinkedIn) ScrapeJobs(ctx context.Context, url string) ([]*core.Job, err
 
 		job.Applicants = applicants
 		job.DatePosted = datePosted
+
+		job.CategoryID = l.CategoryID
+		job.Category = l.Category
 
 		if &job != nil {
 			res = append(res, &job)

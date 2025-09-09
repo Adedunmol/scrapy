@@ -11,7 +11,7 @@ type CreateUserBody struct {
 	Password  string `json:"password" validate:"required"`
 	//Username    string   `json:"username" validate:"required"`
 	Email       string   `json:"email" validate:"required,email"`
-	SearchTerms []string `json:"search_terms" validate:"required"`
+	SearchTerms []string `json:"search_terms" validate:"required,min=3"`
 }
 
 type LoginUserBody struct {

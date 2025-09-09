@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/gocolly/colly"
+	"github.com/google/uuid"
 	"log"
 	"sync"
 )
@@ -26,6 +27,8 @@ type Job struct {
 	Location   string
 	Applicants string
 	Link       string
+	Category   string
+	CategoryID uuid.UUID
 }
 
 type Entry struct {

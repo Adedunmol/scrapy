@@ -26,7 +26,7 @@ func Routes(db *pgxpool.Pool) *chi.Mux {
 		helpers.WriteJSONResponse(w, "hello from scrapy", http.StatusOK)
 	})
 
-	r.Post("/fetch-jobs", FetchJobsHandler)
+	//r.Post("/fetch-jobs", FetchJobsHandler)
 
 	auth.SetupRoutes(r, db)
 

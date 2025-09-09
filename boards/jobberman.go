@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"github.com/Adedunmol/scrapy/core"
 	"github.com/gocolly/colly"
+	"github.com/google/uuid"
 	"net/url"
 	"strings"
 	"sync"
 )
 
 type JobberMan struct {
-	BaseUrl string // https://www.jobberman.com/jobs/full-time?q=python&work_type=full-time
-	JobUrl  string
-	Params  []struct{ Key, Value string }
+	BaseUrl    string // https://www.jobberman.com/jobs/full-time?q=python&work_type=full-time
+	JobUrl     string
+	Params     []struct{ Key, Value string }
+	Category   string
+	CategoryID uuid.UUID
 }
 
 func (j *JobberMan) AddPagination(page int) string {
@@ -56,6 +59,8 @@ func (j *JobberMan) ScrapeJobs(ctx context.Context, url string) ([]*core.Job, er
 	// The main job card container
 	c.OnHTML("div[data-cy='listing-cards-components']", func(e *colly.HTMLElement) {
 		job := j.ParseJob(e)
+		job.CategoryID = j.CategoryID
+		job.Category = j.Category
 
 		if &job != nil {
 			res = append(res, &job)

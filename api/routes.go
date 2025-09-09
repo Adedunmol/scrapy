@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/Adedunmol/scrapy/api/auth"
+	"github.com/Adedunmol/scrapy/api/categories"
 	"github.com/Adedunmol/scrapy/api/helpers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -29,6 +30,7 @@ func Routes(db *pgxpool.Pool) *chi.Mux {
 	//r.Post("/fetch-jobs", FetchJobsHandler)
 
 	auth.SetupRoutes(r, db)
+	categories.SetupRoutes(r, db)
 
 	return r
 }

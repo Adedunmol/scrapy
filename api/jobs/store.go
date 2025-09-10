@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Adedunmol/scrapy/api/helpers"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
@@ -14,6 +15,7 @@ import (
 type Store interface {
 	CreateJob(ctx context.Context, body *CreateJobBody) (Job, error)
 	BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) error
+	GetUserCompany(ctx context.Context, userID uuid.UUID)
 }
 
 type JobStore struct {
@@ -30,7 +32,9 @@ func (j *JobStore) CreateJob(ctx context.Context, body *CreateJobBody) (Job, err
 	ctx, cancel := j.WithTimeout(ctx)
 	defer cancel()
 
-	query := "INSERT INTO jobs (job_title, job_link, date_posted, category_id, origin, origin_id) VALUES (@title, @link, @datePosted, @categoryID, @origin, @originID) RETURNING id, job_title, job_link, date_posted, category_id, origin, origin_id;"
+	query := `INSERT INTO jobs (job_title, job_link, date_posted, category_id, origin, origin_id) 
+				VALUES (@title, @link, @datePosted, @categoryID, @origin, @originID) 
+				RETURNING id, job_title, job_link, date_posted, category_id, origin, origin_id;`
 	args := pgx.NamedArgs{
 		"title":      body.JobTitle,
 		"link":       body.JobLink,

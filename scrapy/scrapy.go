@@ -24,7 +24,7 @@ func Collate(results <-chan []*core.Job) []*core.Job {
 	return scrapedJobs
 }
 
-const ScraperID = 123
+//const ScraperID = "123e4567-e89b-12d3-a456-426614174000"
 
 func Coordinator(ctx context.Context, scheduled bool, location string, categoryStore categories.Store, jobStore jobs.Store) []*core.Job {
 	fmt.Println("coordinator started")
@@ -128,7 +128,7 @@ func Coordinator(ctx context.Context, scheduled bool, location string, categoryS
 			DatePosted: job.DatePosted,
 			CategoryID: job.CategoryID, // you pass this in when converting
 			Origin:     "scraper",      // e.g. "LinkedIn" or "Jobberman"
-			OriginID:   ScraperID,      // use scraped Id as the origin ID
+			//OriginID:   uuid.MustParse(ScraperID), // use scraped Id as the origin ID
 		}
 		bodies = append(bodies, body)
 	}

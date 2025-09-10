@@ -81,6 +81,9 @@ func (s *UserStore) FindUserByEmail(ctx context.Context, email string) (User, er
 	err := row.Scan(&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.Password)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return User{}, helpers.ErrNotFound
+		}
 		err = errors.Join(helpers.ErrInternalServer, err)
 		return User{}, fmt.Errorf("error scanning row (find user by email): %w", err)
 	}

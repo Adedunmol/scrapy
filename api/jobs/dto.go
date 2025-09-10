@@ -19,5 +19,5 @@ type Job struct {
 	DatePosted string    `json:"date_posted"`
 	CategoryID uuid.UUID `json:"category_id"`
 	Origin     string    `json:"origin"`
-	OriginID   string    `json:"origin_id"`
+	OriginID   uuid.UUID `json:"origin_id"`
 }

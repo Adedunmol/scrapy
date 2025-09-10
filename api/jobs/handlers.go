@@ -13,8 +13,8 @@ import (
 
 type Handler struct {
 	Store           Store
-	categoriesStore categories.Store
-	companiesStore  companies.Store
+	CategoriesStore categories.Store
+	CompaniesStore  companies.Store
 }
 
 func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *http.Request) {
@@ -41,7 +41,7 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 		return
 	}
 
-	category, err := h.categoriesStore.GetCategory(ctx, body.Category)
+	category, err := h.CategoriesStore.GetCategory(ctx, body.Category)
 	if err != nil {
 		if errors.Is(err, helpers.ErrNotFound) {
 			response := helpers.Response{
@@ -49,17 +49,19 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 				Message: err.Error() + ": category not found",
 			}
 			helpers.WriteJSONResponse(responseWriter, response, http.StatusNotFound)
+			return
 		}
 		response := helpers.Response{
 			Status:  "error",
 			Message: http.StatusText(http.StatusInternalServerError),
 		}
 		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
+		return
 	}
 
 	userID := request.Context().Value("user_id")
 
-	company, err := h.companiesStore.GetUserCompany(ctx, userID.(uuid.UUID))
+	company, err := h.CompaniesStore.GetUserCompany(ctx, userID.(uuid.UUID))
 	if err != nil {
 		if errors.Is(err, helpers.ErrNotFound) {
 			response := helpers.Response{
@@ -67,12 +69,14 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 				Message: err.Error() + ": company not found",
 			}
 			helpers.WriteJSONResponse(responseWriter, response, http.StatusNotFound)
+			return
 		}
 		response := helpers.Response{
 			Status:  "error",
 			Message: http.StatusText(http.StatusInternalServerError),
 		}
 		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
+		return
 	}
 
 	body.Origin = "company"
@@ -86,6 +90,7 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 			Message: err.Error(),
 		}
 		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
+		return
 	}
 
 	response := helpers.Response{
@@ -94,4 +99,5 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 		Data:    jobData,
 	}
 	helpers.WriteJSONResponse(responseWriter, response, http.StatusCreated)
+	return
 }

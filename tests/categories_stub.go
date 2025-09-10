@@ -52,5 +52,5 @@ func (c *StubCategoryStore) GetCategory(ctx context.Context, name string) (categ
 			return cat, nil
 		}
 	}
-	return categories.Category{}, errors.New("not found")
+	return categories.Category{}, helpers.ErrNotFound
 }

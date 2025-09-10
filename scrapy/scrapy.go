@@ -128,7 +128,7 @@ func Coordinator(ctx context.Context, scheduled bool, location string, categoryS
 			DatePosted: job.DatePosted,
 			CategoryID: job.CategoryID, // you pass this in when converting
 			Origin:     "scraper",      // e.g. "LinkedIn" or "Jobberman"
-			//OriginID:   uuid.MustParse(ScraperID), // use scraped Id as the origin ID
+			//OriginID:   nil,            // use scraped Id as the origin ID
 		}
 		bodies = append(bodies, body)
 	}

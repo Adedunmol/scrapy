@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Adedunmol/scrapy/api/helpers"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
@@ -15,7 +14,6 @@ import (
 type Store interface {
 	CreateJob(ctx context.Context, body *CreateJobBody) (Job, error)
 	BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) error
-	GetUserCompany(ctx context.Context, userID uuid.UUID)
 }
 
 type JobStore struct {
@@ -62,6 +60,8 @@ func (j *JobStore) BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) er
 	ctx, cancel := j.WithTimeout(ctx)
 	defer cancel()
 
+	// origin_id,
+	// @originID,
 	query := `
     INSERT INTO jobs (
         job_title,
@@ -69,7 +69,6 @@ func (j *JobStore) BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) er
         date_posted,
         category_id,
         origin,
-        origin_id,
         updated_at
     ) VALUES (
         @jobTitle,
@@ -77,7 +76,6 @@ func (j *JobStore) BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) er
         @datePosted,
         @categoryID,
         @origin,
-        @originID,
         NOW()
     )`
 
@@ -90,7 +88,7 @@ func (j *JobStore) BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) er
 			"datePosted": job.DatePosted,
 			"categoryID": job.CategoryID,
 			"origin":     job.Origin,
-			"originID":   job.OriginID,
+			//"originID":   job.OriginID,
 		}
 		batch.Queue(query, args)
 	}
@@ -103,7 +101,7 @@ func (j *JobStore) BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) er
 		_, err := results.Exec()
 		if err != nil {
 			log.Println(fmt.Errorf("error while batch creating jobs: %v", err))
-			return fmt.Errorf("error while creating preferences: %v", err)
+			return fmt.Errorf("error while batch creating jobs: %v", err)
 		}
 	}
 

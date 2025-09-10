@@ -5,7 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Adedunmol/scrapy/api"
+	"github.com/Adedunmol/scrapy/api/categories"
+	"github.com/Adedunmol/scrapy/api/jobs"
 	"github.com/Adedunmol/scrapy/database"
+	"github.com/Adedunmol/scrapy/scrapy"
 	"github.com/go-co-op/gocron/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -92,27 +95,27 @@ func main() {
 		}
 	}()
 
-	//categoriesStore := categories.NewCategoryStore(pool, 5*time.Second)
-	//jobsStore := jobs.NewJobStore(pool, 5*time.Second)
+	categoriesStore := categories.NewCategoryStore(pool, 5*time.Second)
+	jobsStore := jobs.NewJobStore(pool, 5*time.Second)
 	// register the function to be executed (run coordinator)
 	_, err = s.NewJob(
 		gocron.DurationJob(
 			3*time.Minute,
 		),
-		//gocron.NewTask(
-		//	scrapy.Coordinator,
-		//	ctx,
-		//	true,
-		//	"", // location
-		//	categoriesStore,
-		//	jobsStore,
-		//),
 		gocron.NewTask(
-			func(ctx context.Context) {
-				fmt.Println("running")
-			},
+			scrapy.Coordinator,
 			ctx,
+			false,
+			"", // location
+			categoriesStore,
+			jobsStore,
 		),
+		//gocron.NewTask(
+		//	func(ctx context.Context) {
+		//		fmt.Println("running")
+		//	},
+		//	ctx,
+		//),
 	)
 	if err != nil {
 		err = fmt.Errorf("error adding job to scheduler: %v", errors.Unwrap(err))

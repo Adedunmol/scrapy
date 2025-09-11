@@ -3,8 +3,6 @@ package tests
 import (
 	"context"
 	"errors"
-	"github.com/Adedunmol/scrapy/api/companies"
-	"github.com/Adedunmol/scrapy/api/helpers"
 	"github.com/Adedunmol/scrapy/api/jobs"
 	"github.com/google/uuid"
 )
@@ -37,20 +35,4 @@ func (s *StubJobStore) BatchCreateJobs(ctx context.Context, jobs []jobs.CreateJo
 
 func (s *StubJobStore) GetJobs(ctx context.Context, userID uuid.UUID) ([]jobs.Job, error) {
 	return nil, nil
-}
-
-type StubCompanyStore struct {
-	Company  companies.Company
-	NotFound bool
-	Fail     bool
-}
-
-func (c *StubCompanyStore) GetUserCompany(ctx context.Context, userID uuid.UUID) (companies.Company, error) {
-	if c.Fail {
-		return companies.Company{}, errors.New("failed to fetch company")
-	}
-	if c.NotFound {
-		return companies.Company{}, helpers.ErrNotFound
-	}
-	return c.Company, nil
 }

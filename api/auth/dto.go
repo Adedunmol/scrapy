@@ -19,12 +19,6 @@ type LoginUserBody struct {
 	Password string `json:"password" validate:"required"`
 }
 
-type CreateCompanyBody struct {
-	Name   string    `json:"name" validate:"required"`
-	Email  string    `json:"email" validate:"required,email"`
-	UserID uuid.UUID `json:"user_id"`
-}
-
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	FirstName string    `json:"first_name"`

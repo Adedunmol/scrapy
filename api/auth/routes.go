@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"github.com/Adedunmol/scrapy/api/helpers"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
@@ -15,5 +14,4 @@ func SetupRoutes(r *chi.Mux, db *pgxpool.Pool) {
 
 	r.Post("/register", handler.RegisterUserHandler)
 	r.Post("/login", handler.LoginUserHandler)
-	r.With(helpers.AuthMiddleware).Post("/companies", handler.CreateCompany)
 }

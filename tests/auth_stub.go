@@ -54,23 +54,3 @@ func (s *StubUserStore) GetCategories(ctx context.Context) (map[string]uuid.UUID
 func (s *StubUserStore) CreatePreferences(ctx context.Context, preferences []uuid.UUID, userID uuid.UUID) error {
 	return nil
 }
-
-func (s *StubUserStore) CreateCompany(ctx context.Context, body *auth.CreateCompanyBody) (auth.Company, error) {
-
-	if !s.Fail {
-		for _, u := range s.Companies {
-			if u.Email == body.Email {
-				return auth.Company{}, helpers.ErrConflict
-			}
-		}
-
-		// ID: 1,
-		companyData := auth.Company{Email: body.Email, Name: body.Name, UserID: body.UserID}
-
-		s.Companies = append(s.Companies, companyData)
-
-		return companyData, nil
-	}
-
-	return auth.Company{}, helpers.ErrInternalServer
-}

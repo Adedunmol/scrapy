@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+type CreateCompanyBody struct {
+	Name   string    `json:"name" validate:"required"`
+	Email  string    `json:"email" validate:"required,email"`
+	UserID uuid.UUID `json:"user_id"`
+}
+
 type Company struct {
 	ID        uuid.UUID  `json:"id"`
 	Name      string     `json:"name"`

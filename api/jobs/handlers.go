@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/Adedunmol/scrapy/api/categories"
-	"github.com/Adedunmol/scrapy/api/companies"
 	"github.com/Adedunmol/scrapy/api/helpers"
 	"github.com/google/uuid"
 	"net/http"
@@ -14,7 +13,6 @@ import (
 type Handler struct {
 	Store           Store
 	CategoriesStore categories.Store
-	CompaniesStore  companies.Store
 }
 
 func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *http.Request) {
@@ -61,7 +59,7 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 
 	userID := request.Context().Value("user_id")
 
-	company, err := h.CompaniesStore.GetUserCompany(ctx, userID.(uuid.UUID))
+	company, err := h.Store.GetUserCompany(ctx, userID.(uuid.UUID))
 	if err != nil {
 		if errors.Is(err, helpers.ErrNotFound) {
 			response := helpers.Response{

@@ -16,6 +16,7 @@ type Store interface {
 	CreateJob(ctx context.Context, body *CreateJobBody) (Job, error)
 	BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) error
 	GetJobs(ctx context.Context, userID uuid.UUID) ([]Job, error)
+	GetUserCompany(ctx context.Context, userID uuid.UUID) (Company, error)
 }
 
 type JobStore struct {
@@ -150,11 +151,38 @@ func (j *JobStore) GetJobs(ctx context.Context, userID uuid.UUID) ([]Job, error)
 		if err := rows.Scan(&job.ID, &job.JobTitle, &job.JobLink, &job.DatePosted, &job.Origin, &job.OriginID, &job.CategoryID, &job.CreatedAt); err != nil {
 			return nil, err
 		}
-		
+
 		jobsData = append(jobsData, job)
 	}
 
 	return jobsData, nil
+}
+
+func (j *JobStore) GetUserCompany(ctx context.Context, userID uuid.UUID) (Company, error) {
+	ctx, cancel := j.WithTimeout(ctx)
+	defer cancel()
+
+	query := "SELECT id, name FROM companies WHERE user_id = @id;"
+
+	args := pgx.NamedArgs{
+		"id": userID,
+	}
+
+	var company Company
+
+	row := j.db.QueryRow(ctx, query, args)
+
+	err := row.Scan(&company.ID, &company.Name)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Company{}, helpers.ErrNotFound
+		}
+		err = errors.Join(helpers.ErrInternalServer, err)
+		return Company{}, fmt.Errorf("error scanning row (find user company): %w", err)
+	}
+
+	return company, nil
 }
 
 func (j *JobStore) WithTimeout(ctx context.Context) (context.Context, context.CancelFunc) {

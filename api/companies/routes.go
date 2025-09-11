@@ -16,7 +16,8 @@ func SetupRoutes(r *chi.Mux, db *pgxpool.Pool) {
 
 	companyRouter.Use(helpers.AuthMiddleware)
 	companyRouter.Post("/", handler.CreateCompany)
-	//companyRouter.Get("/", handler.GetCategories)
+	companyRouter.Get("/{company_id}", handler.GetCompany)
+	companyRouter.Get("/{company_id}/jobs", handler.GetCompanyJobsHandler)
 
 	r.Mount("/companies", companyRouter)
 }

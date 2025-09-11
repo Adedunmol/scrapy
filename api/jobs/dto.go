@@ -26,3 +26,9 @@ type Job struct {
 	CreatedAt  *time.Time `json:"created_at"`
 	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
 }
+
+type Company struct {
+	ID     uuid.UUID `json:"id"`
+	Name   string    `json:"name"`
+	UserID uuid.UUID `json:"user_id"`
+}

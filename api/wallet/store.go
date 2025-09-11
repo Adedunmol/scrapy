@@ -9,14 +9,15 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shopspring/decimal"
 	"time"
 )
 
 type Store interface {
 	CreateWallet(ctx context.Context, body *CreateWalletBody) (Wallet, error)
 	GetWallet(ctx context.Context, walletID uuid.UUID) (Wallet, error)
-	TopUpWallet(ctx context.Context, walletID uuid.UUID, amount float32) (Wallet, error)
-	ChargeWallet(ctx context.Context, walletID uuid.UUID, amount float32) (Wallet, error)
+	TopUpWallet(ctx context.Context, walletID uuid.UUID, amount decimal.Decimal) (Wallet, error)
+	ChargeWallet(ctx context.Context, walletID uuid.UUID, amount decimal.Decimal) (Wallet, error)
 }
 
 const UniqueViolationCode = "23505"
@@ -39,7 +40,7 @@ func (w *WalletStore) CreateWallet(ctx context.Context, body *CreateWalletBody) 
 				VALUES (@balance, @company_id, NOW()) 
 				RETURNING id, balance, company_id, created_at, updated_at;`
 	args := pgx.NamedArgs{
-		"balance":    body.Balance,
+		"balance":    decimal.Zero,
 		"company_id": body.CompanyID,
 	}
 
@@ -84,16 +85,16 @@ func (w *WalletStore) GetWallet(ctx context.Context, walletID uuid.UUID) (Wallet
 	return wallet, nil
 }
 
-func (w *WalletStore) TopUpWallet(ctx context.Context, walletID uuid.UUID, amount float32) (Wallet, error) {
+func (w *WalletStore) TopUpWallet(ctx context.Context, walletID uuid.UUID, amount decimal.Decimal) (Wallet, error) {
 	ctx, cancel := w.WithTimeout(ctx)
 	defer cancel()
 
 	query := `UPDATE wallets 
-				SET balance = balance + @balance 
+				SET balance = balance + @amount
 				WHERE id = @walletID
 				RETURNING id, balance, company_id, created_at, updated_at;`
 	args := pgx.NamedArgs{
-		"balance":  amount,
+		"amount":   amount,
 		"walletID": walletID,
 	}
 
@@ -111,16 +112,16 @@ func (w *WalletStore) TopUpWallet(ctx context.Context, walletID uuid.UUID, amoun
 	return wallet, nil
 }
 
-func (w *WalletStore) ChargeWallet(ctx context.Context, walletID uuid.UUID, amount float32) (Wallet, error) {
+func (w *WalletStore) ChargeWallet(ctx context.Context, walletID uuid.UUID, amount decimal.Decimal) (Wallet, error) {
 	ctx, cancel := w.WithTimeout(ctx)
 	defer cancel()
 
 	query := `UPDATE wallets 
-				SET balance = balance - @balance 
-				WHERE id = @walletID
+				SET balance = balance - @amount 
+				WHERE id = @walletID AND balance >= @amount
 				RETURNING id, balance, company_id, created_at, updated_at;`
 	args := pgx.NamedArgs{
-		"balance":  amount,
+		"amount":   amount,
 		"walletID": walletID,
 	}
 

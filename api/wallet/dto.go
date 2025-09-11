@@ -2,18 +2,18 @@ package wallet
 
 import (
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"time"
 )
 
 type CreateWalletBody struct {
-	Balance   float32   `json:"balance"`
 	CompanyID uuid.UUID `json:"company_id"`
 }
 
 type Wallet struct {
-	ID        uuid.UUID  `json:"id"`
-	Balance   float32    `json:"balance"`
-	CompanyID uuid.UUID  `json:"company_id"`
-	CreatedAt *time.Time `json:"created_at"`
-	UpdatedAt *time.Time `json:"updated_at"`
+	ID        uuid.UUID       `json:"id"`
+	Balance   decimal.Decimal `json:"balance"`
+	CompanyID uuid.UUID       `json:"company_id"`
+	CreatedAt *time.Time      `json:"created_at"`
+	UpdatedAt *time.Time      `json:"updated_at"`
 }

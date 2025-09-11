@@ -92,6 +92,7 @@ func (h *Handler) GetCompany(responseWriter http.ResponseWriter, request *http.R
 
 	company, err := h.Store.GetCompany(ctx, uuid.MustParse(companyID))
 	if err != nil {
+		log.Println(err)
 		ok := errors.Is(err, helpers.ErrNotFound)
 		if ok {
 			response := helpers.Response{

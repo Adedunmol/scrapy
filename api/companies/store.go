@@ -92,7 +92,7 @@ func (c *CompanyStore) GetCompany(ctx context.Context, companyID uuid.UUID) (Com
 	ctx, cancel := c.WithTimeout(ctx)
 	defer cancel()
 
-	query := "SELECT id, name, email, created_at updated_at FROM companies WHERE id = @id;"
+	query := "SELECT id, name, email, user_id, created_at FROM companies WHERE id = @id;"
 
 	args := pgx.NamedArgs{
 		"id": companyID,
@@ -102,7 +102,7 @@ func (c *CompanyStore) GetCompany(ctx context.Context, companyID uuid.UUID) (Com
 
 	row := c.db.QueryRow(ctx, query, args)
 
-	err := row.Scan(&company.ID)
+	err := row.Scan(&company.ID, &company.Name, &company.Email, &company.UserID, &company.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

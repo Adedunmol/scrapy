@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/Adedunmol/scrapy/api/auth"
 	"github.com/Adedunmol/scrapy/api/categories"
+	"github.com/Adedunmol/scrapy/api/companies"
 	"github.com/Adedunmol/scrapy/api/helpers"
 	"github.com/Adedunmol/scrapy/api/jobs"
 	"github.com/go-chi/chi/v5"
@@ -33,6 +34,7 @@ func Routes(db *pgxpool.Pool) *chi.Mux {
 	auth.SetupRoutes(r, db)
 	categories.SetupRoutes(r, db)
 	jobs.SetupRoutes(r, db)
+	companies.SetupRoutes(r, db)
 
 	return r
 }

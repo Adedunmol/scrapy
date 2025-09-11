@@ -4,6 +4,7 @@ import (
 	"github.com/Adedunmol/scrapy/api/auth"
 	"github.com/Adedunmol/scrapy/api/categories"
 	"github.com/Adedunmol/scrapy/api/helpers"
+	"github.com/Adedunmol/scrapy/api/jobs"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -31,6 +32,7 @@ func Routes(db *pgxpool.Pool) *chi.Mux {
 
 	auth.SetupRoutes(r, db)
 	categories.SetupRoutes(r, db)
+	jobs.SetupRoutes(r, db)
 
 	return r
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Adedunmol/scrapy/api/helpers"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
@@ -14,6 +15,7 @@ import (
 type Store interface {
 	CreateJob(ctx context.Context, body *CreateJobBody) (Job, error)
 	BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) error
+	GetJobs(ctx context.Context, userID uuid.UUID) ([]Job, error)
 }
 
 type JobStore struct {
@@ -106,6 +108,53 @@ func (j *JobStore) BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) er
 	}
 
 	return results.Close()
+}
+
+func (j *JobStore) GetJobs(ctx context.Context, userID uuid.UUID) ([]Job, error) {
+	ctx, cancel := j.WithTimeout(ctx)
+	defer cancel()
+
+	// add index on preferences.user_id
+	// add desc index on created_at
+	query := `
+			SELECT 
+				j.id AS job_id,
+				j.job_title,
+				j.job_link,
+				j.date_posted,
+				j.origin,
+				j.origin_id,
+				j.category_id,
+				j.created_at AS job_created_at
+			FROM preferences p
+			JOIN categories c ON p.categories = c.id
+			JOIN jobs j ON j.category_id = c.id
+			WHERE p.user_id = @userID
+			ORDER BY j.created_at DESC;
+			`
+	args := pgx.NamedArgs{
+		"userID": userID,
+	}
+
+	var jobsData []Job
+
+	rows, err := j.db.Query(ctx, query, args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get jobs: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var job Job
+
+		if err := rows.Scan(&job.ID, &job.JobTitle, &job.JobLink, &job.DatePosted, &job.Origin, &job.OriginID, &job.CategoryID, &job.CreatedAt); err != nil {
+			return nil, err
+		}
+		
+		jobsData = append(jobsData, job)
+	}
+
+	return jobsData, nil
 }
 
 func (j *JobStore) WithTimeout(ctx context.Context) (context.Context, context.CancelFunc) {

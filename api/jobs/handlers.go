@@ -101,3 +101,27 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 	helpers.WriteJSONResponse(responseWriter, response, http.StatusCreated)
 	return
 }
+
+func (h *Handler) GetUserJobsHandler(responseWriter http.ResponseWriter, request *http.Request) {
+	ctx := context.Background()
+
+	userID := request.Context().Value("user_id")
+
+	jobsData, err := h.Store.GetJobs(ctx, userID.(uuid.UUID))
+	if err != nil {
+		response := helpers.Response{
+			Status:  "error",
+			Message: http.StatusText(http.StatusInternalServerError),
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
+		return
+	}
+
+	response := helpers.Response{
+		Status:  "success",
+		Message: "jobs fetched successfully",
+		Data:    jobsData,
+	}
+	helpers.WriteJSONResponse(responseWriter, response, http.StatusOK)
+	return
+}

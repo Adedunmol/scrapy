@@ -1,6 +1,9 @@
 package jobs
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type CreateJobBody struct {
 	JobTitle   string    `json:"job_title" validate:"required"`
@@ -13,11 +16,13 @@ type CreateJobBody struct {
 }
 
 type Job struct {
-	ID         uuid.UUID `json:"id"`
-	JobTitle   string    `json:"job_title"`
-	JobLink    string    `json:"job_link"`
-	DatePosted string    `json:"date_posted"`
-	CategoryID uuid.UUID `json:"category_id"`
-	Origin     string    `json:"origin"`
-	OriginID   uuid.UUID `json:"origin_id"`
+	ID         uuid.UUID  `json:"id"`
+	JobTitle   string     `json:"job_title"`
+	JobLink    string     `json:"job_link"`
+	DatePosted string     `json:"date_posted"`
+	CategoryID uuid.UUID  `json:"category_id"`
+	Origin     string     `json:"origin"`
+	OriginID   uuid.UUID  `json:"origin_id,omitempty"`
+	CreatedAt  *time.Time `json:"created_at"`
+	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
 }

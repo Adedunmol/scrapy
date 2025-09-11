@@ -14,28 +14,6 @@ const (
 
 var signingKey = []byte(os.Getenv("SECRET_KEY"))
 
-//func GenerateToken(id uuid.UUID, username string) (string, error) {
-//	return "", nil
-//}
-
-//func GenerateToken(userID uuid.UUID, email string) (string, error) {
-//	var signingKey = []byte(os.Getenv("SECRET_KEY"))
-//	token := jwt.New(jwt.SigningMethodHS256)
-//	claims := token.Claims.(jwt.MapClaims)
-//
-//	claims["email"] = email
-//	claims["user_id"] = userID
-//	claims["exp"] = time.Now().Add(TokenExpiration).Unix()
-//
-//	tokenString, err := token.SignedString(signingKey)
-//	if err != nil {
-//		fmt.Printf("error generating token: %s", err.Error())
-//		return "", err
-//	}
-//
-//	return tokenString, nil
-//}
-
 type Claims struct {
 	ID    uuid.UUID `json:"id"`
 	Email string    `json:"email"`

@@ -13,8 +13,7 @@ func SetupRoutes(r *chi.Mux, db *pgxpool.Pool) {
 		Store: NewCategoryStore(db, 5*time.Second),
 	}
 
-	//categoryRouter.Use(helpers.AuthMiddleware)
-	//categoryRouter.Post("/", handler.CreateCategory)
+	categoryRouter.Post("/", handler.CreateCategory) // make it protected
 	categoryRouter.Get("/", handler.GetCategories)
 
 	r.Mount("/categories", categoryRouter)

@@ -35,6 +35,10 @@ func (s *StubJobStore) BatchCreateJobs(ctx context.Context, jobs []jobs.CreateJo
 	return nil
 }
 
+func (s *StubJobStore) GetJobs(ctx context.Context, userID uuid.UUID) ([]jobs.Job, error) {
+	return nil, nil
+}
+
 type StubCompanyStore struct {
 	Company  companies.Company
 	NotFound bool

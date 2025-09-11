@@ -24,7 +24,7 @@ func TestRegisterUserHandler(t *testing.T) {
 			"username": "janedoe",
 			"password": "password123",
 			"email": "jane@example.com",
-			"search_terms": []
+			"search_terms": ["python", "web", "designer"]
 		}`)
 
 		req := registerUserRequest(data)
@@ -107,7 +107,7 @@ func TestRegisterUserHandler(t *testing.T) {
 			"username": "janedoe",
 			"password": "password123",
 			"email": "jane@example.com",
-			"search_terms": []
+			"search_terms": ["python", "web", "designer"]
 		}`)
 
 		rec := httptest.NewRecorder()
@@ -134,7 +134,7 @@ func TestRegisterUserHandler(t *testing.T) {
 			"username": "janedoe",
 			"password": "password123",
 			"email": "jane2@example.com",
-			"search_terms": []
+			"search_terms": ["python", "web", "designer"]
 		}`)
 
 		req := httptest.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(data))

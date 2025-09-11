@@ -172,7 +172,6 @@ func TestCreateJobHandler(t *testing.T) {
 		categoryStore := &tests.StubCategoryStore{
 			Categories: []categories.Category{{ID: uuid.New(), Name: "Engineering"}},
 		}
-		companyStore := &tests.StubCompanyStore{}
 
 		handler := &jobs.Handler{
 			Store:           jobStore,
@@ -185,7 +184,7 @@ func TestCreateJobHandler(t *testing.T) {
 			"category": "Engineering",
 			"date_posted": "09-10-2025"
 		}`)
-		req := createJobRequest(data, companyStore.Companies[0].ID)
+		req := createJobRequest(data, jobStore.Companies[0].ID)
 		rec := httptest.NewRecorder()
 
 		handler.CreateJobHandler(rec, req)

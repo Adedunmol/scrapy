@@ -31,7 +31,7 @@ func (c *CategoryStore) CreateCategory(ctx context.Context, body *CreateCategory
 	defer cancel()
 
 	query := `
-		INSERT INTO categories (name, created_at, updated_at)
+		INSERT INTO categories (name, updated_at)
 		VALUES (@name, NOW())
 		RETURNING id, name, created_at, updated_at;
 	`

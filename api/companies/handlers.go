@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/Adedunmol/scrapy/api/helpers"
+	"github.com/Adedunmol/scrapy/api/wallet"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"log"
@@ -12,7 +13,8 @@ import (
 )
 
 type Handler struct {
-	Store Store
+	Store       Store
+	WalletStore wallet.Store
 }
 
 func (h *Handler) CreateCompany(responseWriter http.ResponseWriter, request *http.Request) {
@@ -59,6 +61,17 @@ func (h *Handler) CreateCompany(responseWriter http.ResponseWriter, request *htt
 			return
 		}
 
+		response := helpers.Response{
+			Status:  "error",
+			Message: err.Error(),
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
+		return
+	}
+
+	// create company wallet
+	_, err = h.WalletStore.CreateWallet(ctx, company.ID)
+	if err != nil {
 		response := helpers.Response{
 			Status:  "error",
 			Message: err.Error(),

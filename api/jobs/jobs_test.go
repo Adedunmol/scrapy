@@ -28,9 +28,11 @@ func TestCreateJobHandler(t *testing.T) {
 			},
 		}
 
+		walletStore := &tests.StubWalletStore{}
 		handler := &jobs.Handler{
 			Store:           jobStore,
 			CategoriesStore: categoryStore,
+			WalletStore:     walletStore,
 		}
 
 		data := []byte(`{
@@ -104,10 +106,12 @@ func TestCreateJobHandler(t *testing.T) {
 			},
 		}
 		categoryStore := &tests.StubCategoryStore{}
+		walletStore := &tests.StubWalletStore{}
 
 		handler := &jobs.Handler{
 			Store:           jobStore,
 			CategoriesStore: categoryStore,
+			WalletStore:     walletStore,
 		}
 
 		data := []byte(`{
@@ -139,10 +143,12 @@ func TestCreateJobHandler(t *testing.T) {
 		categoryStore := &tests.StubCategoryStore{
 			Categories: []categories.Category{{ID: uuid.New(), Name: "Engineering"}},
 		}
+		walletStore := &tests.StubWalletStore{}
 
 		handler := &jobs.Handler{
 			Store:           jobStore,
 			CategoriesStore: categoryStore,
+			WalletStore:     walletStore,
 		}
 
 		data := []byte(`{
@@ -165,6 +171,8 @@ func TestCreateJobHandler(t *testing.T) {
 		}
 	})
 
+	// create tests for insufficient funds
+
 	t.Run("store returns generic error (500)", func(t *testing.T) {
 		jobStore := &tests.StubJobStore{Fail: true, Companies: []jobs.Company{
 			{ID: uuid.New(), Name: "Acme Corp"},
@@ -172,10 +180,12 @@ func TestCreateJobHandler(t *testing.T) {
 		categoryStore := &tests.StubCategoryStore{
 			Categories: []categories.Category{{ID: uuid.New(), Name: "Engineering"}},
 		}
+		walletStore := &tests.StubWalletStore{}
 
 		handler := &jobs.Handler{
 			Store:           jobStore,
 			CategoriesStore: categoryStore,
+			WalletStore:     walletStore,
 		}
 
 		data := []byte(`{

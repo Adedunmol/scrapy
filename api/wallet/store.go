@@ -14,10 +14,10 @@ import (
 )
 
 type Store interface {
-	CreateWallet(ctx context.Context, body *CreateWalletBody) (Wallet, error)
-	GetWallet(ctx context.Context, walletID uuid.UUID) (Wallet, error)
-	TopUpWallet(ctx context.Context, walletID uuid.UUID, amount decimal.Decimal) (Wallet, error)
-	ChargeWallet(ctx context.Context, walletID uuid.UUID, amount decimal.Decimal) (Wallet, error)
+	CreateWallet(ctx context.Context, companyID uuid.UUID) (Wallet, error)
+	GetWallet(ctx context.Context, companyID uuid.UUID) (Wallet, error)
+	TopUpWallet(ctx context.Context, companyID uuid.UUID, amount decimal.Decimal) (Wallet, error)
+	ChargeWallet(ctx context.Context, companyID uuid.UUID, amount decimal.Decimal) (Wallet, error)
 }
 
 const UniqueViolationCode = "23505"
@@ -32,7 +32,7 @@ func NewWalletStore(db *pgxpool.Pool, queryTimeout time.Duration) *WalletStore {
 	return &WalletStore{db: db, queryTimeout: queryTimeout}
 }
 
-func (w *WalletStore) CreateWallet(ctx context.Context, body *CreateWalletBody) (Wallet, error) {
+func (w *WalletStore) CreateWallet(ctx context.Context, companyID uuid.UUID) (Wallet, error) {
 	ctx, cancel := w.WithTimeout(ctx)
 	defer cancel()
 
@@ -41,7 +41,7 @@ func (w *WalletStore) CreateWallet(ctx context.Context, body *CreateWalletBody) 
 				RETURNING id, balance, company_id, created_at, updated_at;`
 	args := pgx.NamedArgs{
 		"balance":    decimal.Zero,
-		"company_id": body.CompanyID,
+		"company_id": companyID,
 	}
 
 	var wallet Wallet
@@ -62,13 +62,13 @@ func (w *WalletStore) CreateWallet(ctx context.Context, body *CreateWalletBody) 
 	return wallet, nil
 }
 
-func (w *WalletStore) GetWallet(ctx context.Context, walletID uuid.UUID) (Wallet, error) {
+func (w *WalletStore) GetWallet(ctx context.Context, companyID uuid.UUID) (Wallet, error) {
 	ctx, cancel := w.WithTimeout(ctx)
 	defer cancel()
 
-	query := `SELECT id, balance, company_id, created_at, updated_at FROM wallets WHERE id = @walletID;`
+	query := `SELECT id, balance, company_id, created_at, updated_at FROM wallets WHERE company_id = @companyID;`
 	args := pgx.NamedArgs{
-		"walletID": walletID,
+		"companyID": companyID,
 	}
 
 	var wallet Wallet
@@ -78,6 +78,9 @@ func (w *WalletStore) GetWallet(ctx context.Context, walletID uuid.UUID) (Wallet
 	err := row.Scan(&wallet.ID, &wallet.Balance, &wallet.CompanyID, &wallet.CreatedAt, &wallet.UpdatedAt)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Wallet{}, helpers.ErrNotFound
+		}
 		err = errors.Join(helpers.ErrInternalServer, err)
 		return Wallet{}, fmt.Errorf("error scanning row (get wallet): %w", err)
 	}
@@ -85,17 +88,17 @@ func (w *WalletStore) GetWallet(ctx context.Context, walletID uuid.UUID) (Wallet
 	return wallet, nil
 }
 
-func (w *WalletStore) TopUpWallet(ctx context.Context, walletID uuid.UUID, amount decimal.Decimal) (Wallet, error) {
+func (w *WalletStore) TopUpWallet(ctx context.Context, companyID uuid.UUID, amount decimal.Decimal) (Wallet, error) {
 	ctx, cancel := w.WithTimeout(ctx)
 	defer cancel()
 
 	query := `UPDATE wallets 
 				SET balance = balance + @amount
-				WHERE id = @walletID
+				WHERE company_id = @companyID
 				RETURNING id, balance, company_id, created_at, updated_at;`
 	args := pgx.NamedArgs{
-		"amount":   amount,
-		"walletID": walletID,
+		"amount":    amount,
+		"companyID": companyID,
 	}
 
 	var wallet Wallet
@@ -112,17 +115,17 @@ func (w *WalletStore) TopUpWallet(ctx context.Context, walletID uuid.UUID, amoun
 	return wallet, nil
 }
 
-func (w *WalletStore) ChargeWallet(ctx context.Context, walletID uuid.UUID, amount decimal.Decimal) (Wallet, error) {
+func (w *WalletStore) ChargeWallet(ctx context.Context, companyID uuid.UUID, amount decimal.Decimal) (Wallet, error) {
 	ctx, cancel := w.WithTimeout(ctx)
 	defer cancel()
 
 	query := `UPDATE wallets 
 				SET balance = balance - @amount 
-				WHERE id = @walletID AND balance >= @amount
+				WHERE company_id = @companyID AND balance >= @amount
 				RETURNING id, balance, company_id, created_at, updated_at;`
 	args := pgx.NamedArgs{
-		"amount":   amount,
-		"walletID": walletID,
+		"amount":    amount,
+		"companyID": companyID,
 	}
 
 	var wallet Wallet
@@ -132,6 +135,9 @@ func (w *WalletStore) ChargeWallet(ctx context.Context, walletID uuid.UUID, amou
 	err := row.Scan(&wallet.ID, &wallet.Balance, &wallet.CompanyID, &wallet.CreatedAt, &wallet.UpdatedAt)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Wallet{}, helpers.ErrInsufficientFunds
+		}
 		err = errors.Join(helpers.ErrInternalServer, err)
 		return Wallet{}, fmt.Errorf("error scanning row (charge wallet): %w", err)
 	}

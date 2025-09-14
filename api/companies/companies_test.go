@@ -21,7 +21,8 @@ func TestCreateCompanyHandler(t *testing.T) {
 		store := tests.StubCompanyStore{Users: []auth.User{
 			{Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
 		}}
-		server := &companies.Handler{Store: &store}
+		walletStore := tests.StubWalletStore{}
+		server := &companies.Handler{Store: &store, WalletStore: &walletStore}
 
 		data := []byte(`{"name": "Acme Inc", "email": "acme@sample.com"}`)
 		req := createCompanyRequest(data, "jane@example.com")
@@ -43,7 +44,9 @@ func TestCreateCompanyHandler(t *testing.T) {
 		store := tests.StubCompanyStore{Users: []auth.User{
 			{Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
 		}}
-		server := &companies.Handler{Store: &store}
+
+		walletStore := tests.StubWalletStore{}
+		server := &companies.Handler{Store: &store, WalletStore: &walletStore}
 
 		// missing closing brace
 		data := []byte(`{"name": "Acme Inc"`)
@@ -66,7 +69,9 @@ func TestCreateCompanyHandler(t *testing.T) {
 		store := tests.StubCompanyStore{Users: []auth.User{
 			{Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
 		}}
-		server := &companies.Handler{Store: &store}
+
+		walletStore := tests.StubWalletStore{}
+		server := &companies.Handler{Store: &store, WalletStore: &walletStore}
 
 		// Missing required fields
 		data := []byte(`{}`)
@@ -91,7 +96,8 @@ func TestCreateCompanyHandler(t *testing.T) {
 			Companies: []companies.Company{
 				{Email: "acme@sample.com", Name: "random company"},
 			}}
-		server := &companies.Handler{Store: &store}
+		walletStore := tests.StubWalletStore{}
+		server := &companies.Handler{Store: &store, WalletStore: &walletStore}
 
 		data := []byte(`{"name": "Acme Inc", "email": "acme@sample.com"}`)
 		req := createCompanyRequest(data, "jane@example.com")
@@ -113,7 +119,8 @@ func TestCreateCompanyHandler(t *testing.T) {
 			{Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
 		},
 			Fail: true}
-		server := &companies.Handler{Store: &store}
+		walletStore := tests.StubWalletStore{}
+		server := &companies.Handler{Store: &store, WalletStore: &walletStore}
 
 		data := []byte(`{"name": "Acme Inc", "email": "acme@sample.com"}`)
 		req := createCompanyRequest(data, "jane@example.com")

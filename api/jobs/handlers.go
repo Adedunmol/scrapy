@@ -6,13 +6,18 @@ import (
 	"errors"
 	"github.com/Adedunmol/scrapy/api/categories"
 	"github.com/Adedunmol/scrapy/api/helpers"
+	"github.com/Adedunmol/scrapy/api/wallet"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"net/http"
 )
+
+var PerPost = decimal.NewFromInt(100)
 
 type Handler struct {
 	Store           Store
 	CategoriesStore categories.Store
+	WalletStore     wallet.Store
 }
 
 func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *http.Request) {
@@ -76,6 +81,27 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
 		return
 	}
+
+	// charge the company's wallet
+	_, err = h.WalletStore.ChargeWallet(ctx, company.ID, PerPost)
+	if err != nil {
+		if errors.Is(err, helpers.ErrInsufficientFunds) {
+			response := helpers.Response{
+				Status:  "error",
+				Message: err.Error(),
+			}
+			helpers.WriteJSONResponse(responseWriter, response, http.StatusBadRequest)
+			return
+		}
+		response := helpers.Response{
+			Status:  "error",
+			Message: err.Error(),
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
+		return
+	}
+
+	// create transaction entry
 
 	body.Origin = "company"
 	body.OriginID = company.ID

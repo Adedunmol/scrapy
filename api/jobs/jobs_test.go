@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"github.com/Adedunmol/scrapy/api/categories"
 	"github.com/Adedunmol/scrapy/api/jobs"
+	"github.com/Adedunmol/scrapy/api/wallet"
 	"github.com/Adedunmol/scrapy/tests"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -19,8 +21,9 @@ var UserID = uuid.MustParse("123e4567-e89b-12d3-a456-426614174000")
 
 func TestCreateJobHandler(t *testing.T) {
 	t.Run("successfully creates a job", func(t *testing.T) {
+		id := uuid.New()
 		jobStore := &tests.StubJobStore{Companies: []jobs.Company{
-			{ID: uuid.New(), Name: "Acme Corp", UserID: UserID},
+			{ID: id, Name: "Acme Corp", UserID: UserID},
 		}}
 		categoryStore := &tests.StubCategoryStore{
 			Categories: []categories.Category{
@@ -28,7 +31,11 @@ func TestCreateJobHandler(t *testing.T) {
 			},
 		}
 
-		walletStore := &tests.StubWalletStore{}
+		walletStore := &tests.StubWalletStore{
+			Wallets: []wallet.Wallet{
+				{ID: uuid.New(), Balance: decimal.NewFromInt(1000), CompanyID: id},
+			},
+		}
 		handler := &jobs.Handler{
 			Store:           jobStore,
 			CategoriesStore: categoryStore,
@@ -57,6 +64,49 @@ func TestCreateJobHandler(t *testing.T) {
 
 		if len(jobStore.Jobs) != 1 {
 			t.Errorf("expected 1 job in store, got %d", len(jobStore.Jobs))
+		}
+	})
+
+	t.Run("insufficient funds for a post", func(t *testing.T) {
+		id := uuid.New()
+		jobStore := &tests.StubJobStore{Companies: []jobs.Company{
+			{ID: id, Name: "Acme Corp", UserID: UserID},
+		}}
+		categoryStore := &tests.StubCategoryStore{
+			Categories: []categories.Category{
+				{ID: uuid.New(), Name: "Engineering"},
+			},
+		}
+
+		walletStore := &tests.StubWalletStore{
+			Wallets: []wallet.Wallet{
+				{ID: uuid.New(), Balance: decimal.NewFromInt(0), CompanyID: id},
+			},
+		}
+		handler := &jobs.Handler{
+			Store:           jobStore,
+			CategoriesStore: categoryStore,
+			WalletStore:     walletStore,
+		}
+
+		data := []byte(`{
+			"job_title": "Backend Engineer",
+			"job_link": "http://example.com",
+			"category": "Engineering",
+			"date_posted": "09-10-2025"
+		}`)
+		req := createJobRequest(data, UserID) // helper to set user_id in context
+		rec := httptest.NewRecorder()
+
+		handler.CreateJobHandler(rec, req)
+
+		var got map[string]interface{}
+		_ = json.Unmarshal(rec.Body.Bytes(), &got)
+
+		assertResponseCode(t, rec.Code, http.StatusBadRequest)
+
+		if got["message"] != "insufficient funds" {
+			t.Errorf("expected 'insufficient funds', got %v", got["status"])
 		}
 	})
 
@@ -100,13 +150,18 @@ func TestCreateJobHandler(t *testing.T) {
 	})
 
 	t.Run("category not found returns 404", func(t *testing.T) {
+		id := uuid.New()
 		jobStore := &tests.StubJobStore{
 			Companies: []jobs.Company{
-				{ID: uuid.New(), Name: "Acme Corp", UserID: UserID},
+				{ID: id, Name: "Acme Corp", UserID: UserID},
 			},
 		}
 		categoryStore := &tests.StubCategoryStore{}
-		walletStore := &tests.StubWalletStore{}
+		walletStore := &tests.StubWalletStore{
+			Wallets: []wallet.Wallet{
+				{ID: uuid.New(), Balance: decimal.NewFromInt(1000), CompanyID: id},
+			},
+		}
 
 		handler := &jobs.Handler{
 			Store:           jobStore,

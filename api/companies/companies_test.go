@@ -18,8 +18,9 @@ import (
 
 func TestCreateCompanyHandler(t *testing.T) {
 	t.Run("successfully creates a company", func(t *testing.T) {
+		id := uuid.New()
 		store := tests.StubCompanyStore{Users: []auth.User{
-			{Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
+			{ID: id, Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
 		}}
 		walletStore := tests.StubWalletStore{}
 		server := &companies.Handler{Store: &store, WalletStore: &walletStore}
@@ -41,8 +42,10 @@ func TestCreateCompanyHandler(t *testing.T) {
 	})
 
 	t.Run("invalid JSON body returns 400", func(t *testing.T) {
+		id := uuid.New()
+
 		store := tests.StubCompanyStore{Users: []auth.User{
-			{Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
+			{ID: id, Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
 		}}
 
 		walletStore := tests.StubWalletStore{}
@@ -66,8 +69,10 @@ func TestCreateCompanyHandler(t *testing.T) {
 	})
 
 	t.Run("validation error returns 400", func(t *testing.T) {
+		id := uuid.New()
+
 		store := tests.StubCompanyStore{Users: []auth.User{
-			{Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
+			{ID: id, Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
 		}}
 
 		walletStore := tests.StubWalletStore{}
@@ -90,8 +95,10 @@ func TestCreateCompanyHandler(t *testing.T) {
 	})
 
 	t.Run("store returns conflict (409)", func(t *testing.T) {
+		id := uuid.New()
+
 		store := tests.StubCompanyStore{Users: []auth.User{
-			{Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
+			{ID: id, Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
 		},
 			Companies: []companies.Company{
 				{Email: "acme@sample.com", Name: "random company"},
@@ -115,8 +122,29 @@ func TestCreateCompanyHandler(t *testing.T) {
 	})
 
 	t.Run("store returns generic error (500)", func(t *testing.T) {
+		id := uuid.New()
+
 		store := tests.StubCompanyStore{Users: []auth.User{
-			{Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
+			{ID: id, Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
+		},
+			Fail: true}
+		walletStore := tests.StubWalletStore{}
+		server := &companies.Handler{Store: &store, WalletStore: &walletStore}
+
+		data := []byte(`{"name": "Acme Inc", "email": "acme@sample.com"}`)
+		req := createCompanyRequest(data, "jane@example.com")
+		rec := httptest.NewRecorder()
+
+		server.CreateCompany(rec, req)
+
+		assertResponseCode(t, rec.Code, http.StatusInternalServerError)
+	})
+
+	t.Run("store returns generic error (500) for wallet", func(t *testing.T) {
+		id := uuid.New()
+
+		store := tests.StubCompanyStore{Users: []auth.User{
+			{ID: id, Email: "adedunmola@gmail.com", Password: "password"}, //ID: 1,
 		},
 			Fail: true}
 		walletStore := tests.StubWalletStore{}

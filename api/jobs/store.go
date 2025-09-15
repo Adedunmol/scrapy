@@ -49,11 +49,11 @@ func (j *JobStore) CreateJob(ctx context.Context, body *CreateJobBody) (Job, err
 
 	row := j.db.QueryRow(ctx, query, args)
 
-	err := row.Scan(&job.ID, &job.JobTitle, &job.JobLink, &job.DatePosted, &job.CategoryID, &job.Origin)
+	err := row.Scan(&job.ID, &job.JobTitle, &job.JobLink, &job.DatePosted, &job.CategoryID, &job.Origin, &job.OriginID)
 
 	if err != nil {
 		err = errors.Join(helpers.ErrInternalServer, err)
-		return Job{}, fmt.Errorf("error scanning row (create user): %w", err)
+		return Job{}, fmt.Errorf("error scanning row (create job): %w", err)
 	}
 
 	return job, nil

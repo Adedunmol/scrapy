@@ -10,6 +10,10 @@ type CreateWalletBody struct {
 	CompanyID uuid.UUID `json:"company_id"`
 }
 
+type TopUpWalletBody struct {
+	Amount decimal.Decimal `json:"amount" validate:"required"`
+}
+
 type Wallet struct {
 	ID        uuid.UUID       `json:"id"`
 	Balance   decimal.Decimal `json:"balance"`

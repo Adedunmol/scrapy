@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/Adedunmol/scrapy/api/categories"
 	"github.com/Adedunmol/scrapy/api/helpers"
+	"github.com/Adedunmol/scrapy/api/transactions"
 	"github.com/Adedunmol/scrapy/api/wallet"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -15,9 +16,10 @@ import (
 var PerPost = decimal.NewFromInt(100)
 
 type Handler struct {
-	Store           Store
-	CategoriesStore categories.Store
-	WalletStore     wallet.Store
+	Store            Store
+	CategoriesStore  categories.Store
+	WalletStore      wallet.Store
+	TransactionStore transactions.Store
 }
 
 func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *http.Request) {
@@ -83,7 +85,7 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 	}
 
 	// charge the company's wallet
-	_, err = h.WalletStore.ChargeWallet(ctx, company.ID, PerPost)
+	wallet, err := h.WalletStore.ChargeWallet(ctx, company.ID, PerPost)
 	if err != nil {
 		if errors.Is(err, helpers.ErrInsufficientFunds) {
 			response := helpers.Response{
@@ -102,6 +104,15 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 	}
 
 	// create transaction entry
+	txEntry := transactions.CreateTransactionBody{
+		Amount:        PerPost,
+		BalanceBefore: wallet.Balance.Add(PerPost),
+		BalanceAfter:  wallet.Balance,
+		Status:        "successful",
+		WalletID:      wallet.ID,
+		Reference:     uuid.New().String(),
+	}
+	_, err = h.TransactionStore.CreateTransaction(ctx, &txEntry)
 
 	body.Origin = "company"
 	body.OriginID = company.ID

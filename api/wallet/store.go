@@ -15,8 +15,8 @@ import (
 
 type Store interface {
 	CreateWallet(ctx context.Context, companyID uuid.UUID) (Wallet, error)
-	GetWallet(ctx context.Context, companyID uuid.UUID) (Wallet, error)
-	TopUpWallet(ctx context.Context, companyID uuid.UUID, amount decimal.Decimal) (Wallet, error)
+	GetWallet(ctx context.Context, userID uuid.UUID) (Wallet, error)
+	TopUpWallet(ctx context.Context, userID uuid.UUID, amount decimal.Decimal) (Wallet, error)
 	ChargeWallet(ctx context.Context, companyID uuid.UUID, amount decimal.Decimal) (Wallet, error)
 }
 
@@ -62,13 +62,16 @@ func (w *WalletStore) CreateWallet(ctx context.Context, companyID uuid.UUID) (Wa
 	return wallet, nil
 }
 
-func (w *WalletStore) GetWallet(ctx context.Context, companyID uuid.UUID) (Wallet, error) {
+func (w *WalletStore) GetWallet(ctx context.Context, userID uuid.UUID) (Wallet, error) {
 	ctx, cancel := w.WithTimeout(ctx)
 	defer cancel()
 
-	query := `SELECT id, balance, company_id, created_at, updated_at FROM wallets WHERE company_id = @companyID;`
+	query := `SELECT w.id, w.balance, w.company_id, w.created_at, w.updated_at 
+				FROM companies c 
+				JOIN wallets w ON w.company_id = c.id
+				WHERE user_id = @userID;`
 	args := pgx.NamedArgs{
-		"companyID": companyID,
+		"userID": userID,
 	}
 
 	var wallet Wallet
@@ -88,17 +91,20 @@ func (w *WalletStore) GetWallet(ctx context.Context, companyID uuid.UUID) (Walle
 	return wallet, nil
 }
 
-func (w *WalletStore) TopUpWallet(ctx context.Context, companyID uuid.UUID, amount decimal.Decimal) (Wallet, error) {
+func (w *WalletStore) TopUpWallet(ctx context.Context, userID uuid.UUID, amount decimal.Decimal) (Wallet, error) {
 	ctx, cancel := w.WithTimeout(ctx)
 	defer cancel()
 
-	query := `UPDATE wallets 
-				SET balance = balance + @amount
-				WHERE company_id = @companyID
-				RETURNING id, balance, company_id, created_at, updated_at;`
+	query := `UPDATE wallets w
+				SET balance = w.balance + @amount
+				FROM companies c
+				WHERE w.company_id = c.id
+  				AND c.user_id = @userID
+				RETURNING w.id, w.balance, w.company_id, w.created_at, w.updated_at;
+			`
 	args := pgx.NamedArgs{
-		"amount":    amount,
-		"companyID": companyID,
+		"amount": amount,
+		"userID": userID,
 	}
 
 	var wallet Wallet

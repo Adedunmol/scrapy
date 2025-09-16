@@ -2,6 +2,7 @@ package companies
 
 import (
 	"github.com/Adedunmol/scrapy/api/helpers"
+	"github.com/Adedunmol/scrapy/api/transactions"
 	"github.com/Adedunmol/scrapy/api/wallet"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -12,14 +13,16 @@ func SetupRoutes(r *chi.Mux, db *pgxpool.Pool) {
 
 	companyRouter := chi.NewRouter()
 	handler := Handler{
-		Store:       NewCompanyStore(db, 5*time.Second),
-		WalletStore: wallet.NewWalletStore(db, 5*time.Second),
+		Store:            NewCompanyStore(db, 5*time.Second),
+		WalletStore:      wallet.NewWalletStore(db, 5*time.Second),
+		TransactionStore: transactions.NewTransactionStore(db, 5*time.Second),
 	}
 
 	companyRouter.Use(helpers.AuthMiddleware)
 	companyRouter.Post("/", handler.CreateCompany)
 	companyRouter.Get("/{company_id}", handler.GetCompany)
 	companyRouter.Get("/{company_id}/jobs", handler.GetCompanyJobsHandler)
+	companyRouter.Get("/{company_id}/transactions", handler.GetCompanyTransactionsHandler)
 
 	r.Mount("/companies", companyRouter)
 }

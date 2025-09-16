@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Adedunmol/scrapy/api/helpers"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
@@ -12,6 +13,7 @@ import (
 
 type Store interface {
 	CreateTransaction(ctx context.Context, body *CreateTransactionBody) (Transaction, error)
+	GetTransactions(ctx context.Context, companyID uuid.UUID) ([]Transaction, error)
 }
 
 type TransactionStore struct {
@@ -53,6 +55,37 @@ func (t *TransactionStore) CreateTransaction(ctx context.Context, body *CreateTr
 	}
 
 	return Transaction{}, nil
+}
+
+func (t *TransactionStore) GetTransactions(ctx context.Context, companyID uuid.UUID) ([]Transaction, error) {
+	ctx, cancel := t.WithTimeout(ctx)
+	defer cancel()
+
+	query := `SELECT id, amount, balance_before, balance_after, reference, status, type, created_at FROM transactions WHERE id = @companyID;`
+
+	args := pgx.NamedArgs{
+		"companyID": companyID,
+	}
+
+	var transactions []Transaction
+
+	rows, err := t.db.Query(ctx, query, args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get transactions: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var tx Transaction
+
+		if err := rows.Scan(&tx.ID, &tx.Amount, &tx.BalanceBefore, &tx.BalanceAfter, &tx.Reference, &tx.Status, &tx.Type, &tx.CreatedAt); err != nil {
+			return nil, err
+		}
+
+		transactions = append(transactions, tx)
+	}
+
+	return transactions, nil
 }
 
 func (t *TransactionStore) WithTimeout(ctx context.Context) (context.Context, context.CancelFunc) {

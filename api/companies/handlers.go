@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/Adedunmol/scrapy/api/helpers"
+	"github.com/Adedunmol/scrapy/api/transactions"
 	"github.com/Adedunmol/scrapy/api/wallet"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -13,8 +14,9 @@ import (
 )
 
 type Handler struct {
-	Store       Store
-	WalletStore wallet.Store
+	Store            Store
+	WalletStore      wallet.Store
+	TransactionStore transactions.Store
 }
 
 func (h *Handler) CreateCompany(responseWriter http.ResponseWriter, request *http.Request) {
@@ -159,6 +161,39 @@ func (h *Handler) GetCompanyJobsHandler(responseWriter http.ResponseWriter, requ
 		Message: "company jobs retrieved successfully",
 		Data:    companiesData,
 	}
+	helpers.WriteJSONResponse(responseWriter, response, http.StatusOK)
+	return
+}
+
+func (h *Handler) GetCompanyTransactionsHandler(responseWriter http.ResponseWriter, request *http.Request) {
+	ctx := context.Background()
+	companyID := chi.URLParam(request, "company_id")
+
+	if companyID == "" {
+		response := helpers.Response{
+			Status:  "error",
+			Message: "company_id is required",
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusBadRequest)
+		return
+	}
+
+	txns, err := h.TransactionStore.GetTransactions(ctx, uuid.MustParse(companyID))
+	if err != nil {
+		response := helpers.Response{
+			Status:  "error",
+			Message: http.StatusText(http.StatusInternalServerError),
+		}
+		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
+		return
+	}
+	
+	response := helpers.Response{
+		Status:  "success",
+		Message: "company transactions retrieved successfully",
+		Data:    txns,
+	}
+
 	helpers.WriteJSONResponse(responseWriter, response, http.StatusOK)
 	return
 }

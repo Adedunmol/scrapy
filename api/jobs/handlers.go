@@ -10,6 +10,7 @@ import (
 	"github.com/Adedunmol/scrapy/api/wallet"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"log"
 	"net/http"
 )
 
@@ -143,6 +144,9 @@ func (h *Handler) GetUserJobsHandler(responseWriter http.ResponseWriter, request
 	userID := request.Context().Value("user_id")
 
 	jobsData, err := h.Store.GetJobs(ctx, userID.(uuid.UUID))
+	log.Printf("jobs length: %v", len(jobsData))
+	log.Println(jobsData)
+
 	if err != nil {
 		response := helpers.Response{
 			Status:  "error",

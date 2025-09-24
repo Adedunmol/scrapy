@@ -15,7 +15,7 @@ import (
 type Store interface {
 	CreateJob(ctx context.Context, body *CreateJobBody) (Job, error)
 	BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) error
-	GetJobs(ctx context.Context, userID uuid.UUID) ([]Job, error)
+	GetJobs(ctx context.Context, userID uuid.UUID, page, limit int) ([]Job, error)
 	GetUserCompany(ctx context.Context, userID uuid.UUID) (Company, error)
 }
 
@@ -111,9 +111,17 @@ func (j *JobStore) BatchCreateJobs(ctx context.Context, jobs []CreateJobBody) er
 	return results.Close()
 }
 
-func (j *JobStore) GetJobs(ctx context.Context, userID uuid.UUID) ([]Job, error) {
+func (j *JobStore) GetJobs(ctx context.Context, userID uuid.UUID, page, limit int) ([]Job, error) {
 	ctx, cancel := j.WithTimeout(ctx)
 	defer cancel()
+
+	if page < 1 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 20 // default page size
+	}
+	offset := (page - 1) * limit
 
 	// add index on preferences.user_id
 	// add desc index on created_at
@@ -131,10 +139,13 @@ func (j *JobStore) GetJobs(ctx context.Context, userID uuid.UUID) ([]Job, error)
 			JOIN categories c ON p.categories = c.id
 			JOIN jobs j ON j.category_id = c.id
 			WHERE p.user_id = @userID
-			ORDER BY j.created_at DESC;
+			ORDER BY j.created_at DESC
+			LIMIT @limit OFFSET @offset;
 			`
 	args := pgx.NamedArgs{
 		"userID": userID,
+		"limit":  limit,
+		"offset": offset,
 	}
 
 	var jobsData []Job

@@ -16,15 +16,16 @@ type CreateJobBody struct {
 }
 
 type Job struct {
-	ID         uuid.UUID  `json:"id"`
-	JobTitle   string     `json:"job_title"`
-	JobLink    string     `json:"job_link"`
-	DatePosted string     `json:"date_posted"`
-	CategoryID uuid.UUID  `json:"category_id"`
-	Origin     string     `json:"origin"`
-	OriginID   uuid.UUID  `json:"origin_id,omitempty"`
-	CreatedAt  *time.Time `json:"created_at"`
-	UpdatedAt  *time.Time `json:"updated_at,omitempty"`
+	ID           uuid.UUID  `json:"id"`
+	JobTitle     string     `json:"job_title"`
+	JobLink      string     `json:"job_link"`
+	DatePosted   string     `json:"date_posted"`
+	CategoryID   uuid.UUID  `json:"category_id"`
+	Origin       string     `json:"origin"`
+	OriginID     uuid.UUID  `json:"origin_id,omitempty"`
+	CategoryName string     `json:"category_name"`
+	CreatedAt    *time.Time `json:"created_at"`
+	UpdatedAt    *time.Time `json:"updated_at,omitempty"`
 }
 
 type Company struct {

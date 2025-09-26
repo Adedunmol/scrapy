@@ -86,7 +86,7 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 	}
 
 	// charge the company's wallet
-	wallet, err := h.WalletStore.ChargeWallet(ctx, company.ID, PerPost)
+	walletData, err := h.WalletStore.ChargeWallet(ctx, company.ID, PerPost)
 	if err != nil {
 		if errors.Is(err, helpers.ErrInsufficientFunds) {
 			response := helpers.Response{
@@ -107,10 +107,10 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 	// create transaction entry
 	txEntry := transactions.CreateTransactionBody{
 		Amount:        PerPost,
-		BalanceBefore: wallet.Balance.Add(PerPost),
-		BalanceAfter:  wallet.Balance,
+		BalanceBefore: walletData.Balance.Add(PerPost),
+		BalanceAfter:  walletData.Balance,
 		Status:        "successful",
-		WalletID:      wallet.ID,
+		WalletID:      walletData.ID,
 		Reference:     uuid.New().String(),
 	}
 	_, err = h.TransactionStore.CreateTransaction(ctx, &txEntry)

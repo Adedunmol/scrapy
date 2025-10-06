@@ -17,17 +17,17 @@ type Admin struct {
 	ID        uuid.UUID `json:"id"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
-	Password  string    `json:"password"`
-	Username  string    `json:"username"`
-	Email     string    `json:"email"`
-	IsAdmin   bool      `json:"is_admin"`
+	Password  string    `json:"-"`
+	//Username  string    `json:"username"`
+	Email string `json:"email"`
+	//IsAdmin bool   `json:"is_admin"`
 }
 
 type CreateRoleBody struct {
-	Name        string `json:"name" validate:"required"`
-	Description string `json:"description" validate:"required"`
-	Slug        string `json:"slug"`
-	CreatedBy   string `json:"created_by"`
+	Name        string    `json:"name" validate:"required"`
+	Description string    `json:"description" validate:"required"`
+	Slug        string    `json:"slug"`
+	CreatedBy   uuid.UUID `json:"created_by"`
 }
 
 type Role struct {
@@ -35,16 +35,16 @@ type Role struct {
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
 	Slug        string     `json:"slug"`
-	CreatedBy   string     `json:"created_by"`
+	CreatedBy   uuid.UUID  `json:"created_by"`
 	CreatedAt   *time.Time `json:"created_at"`
 	UpdatedAt   *time.Time `json:"updated_at"`
 }
 
 type CreatePermissionBody struct {
-	Name        string `json:"name" validate:"required"`
-	Description string `json:"description" validate:"required"`
-	Slug        string `json:"slug"`
-	CreatedBy   string `json:"created_by"`
+	Name        string    `json:"name" validate:"required"`
+	Description string    `json:"description" validate:"required"`
+	Slug        string    `json:"slug"`
+	CreatedBy   uuid.UUID `json:"created_by"`
 }
 
 type Permission struct {
@@ -52,7 +52,7 @@ type Permission struct {
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
 	Slug        string     `json:"slug"`
-	CreatedBy   string     `json:"created_by"`
+	CreatedBy   uuid.UUID  `json:"created_by"`
 	CreatedAt   *time.Time `json:"created_at"`
 	UpdatedAt   *time.Time `json:"updated_at"`
 }

@@ -144,7 +144,7 @@ func (s *AdminStore) CreateRole(ctx context.Context, body *CreateRoleBody) (Role
 
 	row := s.db.QueryRow(ctx, query, args)
 
-	err := row.Scan(&role.ID, &role.Name, &role.Description, &role.Slug, &role.CreatedBy)
+	err := row.Scan(&role.ID, &role.Name, &role.Description, &role.Slug, &role.CreatedBy, &role.CreatedAt)
 
 	if err != nil {
 		var e *pgconn.PgError
@@ -174,7 +174,7 @@ func (s *AdminStore) CreatePermission(ctx context.Context, body *CreatePermissio
 
 	row := s.db.QueryRow(ctx, query, args)
 
-	err := row.Scan(&permission.ID, &permission.Name, &permission.Description, &permission.Slug, &permission.CreatedBy)
+	err := row.Scan(&permission.ID, &permission.Name, &permission.Description, &permission.Slug, &permission.CreatedBy, &permission.CreatedAt)
 
 	if err != nil {
 		var e *pgconn.PgError

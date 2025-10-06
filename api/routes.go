@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/Adedunmol/scrapy/api/admin"
 	"github.com/Adedunmol/scrapy/api/auth"
 	"github.com/Adedunmol/scrapy/api/categories"
 	"github.com/Adedunmol/scrapy/api/companies"
@@ -37,6 +38,7 @@ func Routes(db *pgxpool.Pool) *chi.Mux {
 	jobs.SetupRoutes(r, db)
 	companies.SetupRoutes(r, db)
 	wallet.SetupRoutes(r, db)
+	admin.SetupRoutes(r, db)
 
 	return r
 }

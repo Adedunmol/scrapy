@@ -123,12 +123,12 @@ func Coordinator(ctx context.Context, scheduled bool, location string, categoryS
 
 	for _, job := range scrapedJobs {
 		body := jobs.CreateJobBody{
-			JobTitle:   job.Title,
-			JobLink:    job.Link,
-			DatePosted: job.DatePosted,
-			CategoryID: job.CategoryID, // you pass this in when converting
-			Origin:     "scraper",      // e.g. "LinkedIn" or "Jobberman"
-			//OriginID:   nil,            // use scraped Id as the origin ID
+			JobTitle:    job.Title,
+			JobLink:     job.Link,
+			DatePosted:  job.DatePosted,
+			CategoryID:  job.CategoryID,
+			Origin:      "scraper",
+			CompanyName: job.Company,
 		}
 		bodies = append(bodies, body)
 	}

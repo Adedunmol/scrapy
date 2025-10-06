@@ -23,7 +23,7 @@ import (
 )
 
 func runMigrations(db *pgxpool.Pool, dir string) error {
-	goose.SetBaseFS(nil) // required if you're not embedding migrations
+	goose.SetBaseFS(nil)
 
 	sqlDB := stdlib.OpenDBFromPool(db)
 	if sqlDB == nil {
@@ -32,7 +32,6 @@ func runMigrations(db *pgxpool.Pool, dir string) error {
 
 	err := goose.Up(sqlDB, dir)
 	if err != nil {
-		// Check if it's a "no files found" or "dir not exist" error
 		if errors.Is(err, os.ErrNotExist) {
 			log.Println("No migration directory found, skipping...")
 			return nil
@@ -100,7 +99,7 @@ func main() {
 	// register the function to be executed (run coordinator)
 	_, err = s.NewJob(
 		gocron.DurationJob(
-			3*time.Minute,
+			30*time.Minute,
 		),
 		gocron.NewTask(
 			scrapy.Coordinator,

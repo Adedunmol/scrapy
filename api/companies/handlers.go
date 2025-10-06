@@ -187,7 +187,7 @@ func (h *Handler) GetCompanyTransactionsHandler(responseWriter http.ResponseWrit
 		helpers.WriteJSONResponse(responseWriter, response, http.StatusInternalServerError)
 		return
 	}
-	
+
 	response := helpers.Response{
 		Status:  "success",
 		Message: "company transactions retrieved successfully",

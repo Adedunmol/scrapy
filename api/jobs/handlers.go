@@ -118,6 +118,7 @@ func (h *Handler) CreateJobHandler(responseWriter http.ResponseWriter, request *
 	body.Origin = "company"
 	body.OriginID = company.ID
 	body.CategoryID = category.ID
+	body.CompanyName = company.Name
 
 	jobData, err := h.Store.CreateJob(ctx, &body)
 	if err != nil {

@@ -135,7 +135,8 @@ func (j *JobStore) GetJobs(ctx context.Context, userID uuid.UUID, page, limit in
 				j.origin_id,
 				j.category_id,
 				j.created_at AS job_created_at,
-				c.name
+				c.name,
+				j.description
 			FROM preferences p
 			JOIN categories c ON p.categories = c.id
 			JOIN jobs j ON j.category_id = c.id
@@ -160,7 +161,7 @@ func (j *JobStore) GetJobs(ctx context.Context, userID uuid.UUID, page, limit in
 	for rows.Next() {
 		var job Job
 
-		if err := rows.Scan(&job.ID, &job.JobTitle, &job.JobLink, &job.DatePosted, &job.Origin, &job.OriginID, &job.CategoryID, &job.CreatedAt, &job.CategoryName); err != nil {
+		if err := rows.Scan(&job.ID, &job.JobTitle, &job.JobLink, &job.DatePosted, &job.Origin, &job.OriginID, &job.CategoryID, &job.CreatedAt, &job.CategoryName, &job.Description); err != nil {
 			return nil, err
 		}
 

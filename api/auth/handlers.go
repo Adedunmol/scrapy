@@ -160,7 +160,7 @@ func (h *Handler) LoginUserHandler(responseWriter http.ResponseWriter, request *
 		helpers.WriteJSONResponse(responseWriter, response, http.StatusUnauthorized)
 		return
 	}
-	token, err := helpers.GenerateToken(data.ID, data.Email)
+	token, err := helpers.GenerateToken(data.ID, data.Email, false)
 	if err != nil {
 		response := helpers.Response{
 			Status:  "error",
